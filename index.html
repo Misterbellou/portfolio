@@ -1,0 +1,2051 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Futuriste</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <style>
+        @import url("https://fonts.cdnfonts.com/css/devil-breeze");
+        @import url("https://fonts.cdnfonts.com/css/poppins");
+        @import url("https://fonts.cdnfonts.com/css/bimbo");
+        :root {
+          --color-neutral-900: oklch(0.185 0 0);
+  
+          color-scheme: light dark;
+          --space: 3rem;
+          --surface-1: #101012;
+          --surface-2: #27272a;
+          --surface-3: #52525b;
+          --ease-out: cubic-bezier(0.5, 1, 0.89, 1);
+          --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
+          --hue: 223deg;
+            --gray1: hsl(223 10% 95%);
+            --gray9: hsl(223 10% 15%);
+            --black: hsl(0 0% 0%);
+            --primary3: hsl(223 90% 75%);
+            --primary5: hsl(223 90% 55%);
+            --primary6: hsl(223 90% 45%);
+            --trans-dur: 0.3s;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            font-family: 'Arial', sans-serif;
+            overflow-x: hidden;
+        }
+
+
+        /* Section 1 - Hero avec image animée */
+        .hero-section {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: radial-gradient(circle at center, #0f3460 0%, #0a0a0a 70%);
+        }
+
+        .hero-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 90%;
+            max-width: 1200px;
+            position: relative;
+        }
+
+        .hero-text-left, .hero-text-right {
+            flex: 1;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hero-text-left h2, .hero-text-right h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-text-left p, .hero-text-right p {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: #b0b0b0;
+        }
+
+        .image-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 50px;
+        }
+
+        .profile-image {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border: 3px solid #00d4ff;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+            z-index: 2;
+        }
+
+        /* Canvas pour le rayon laser */
+        .laser-canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* Responsive pour mobile */
+        @media (max-width: 600px) {
+            .hero-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .hero-text-left {
+                order: 1;
+            }
+
+            .image-container {
+                order: 2;
+                margin: 30px 0;
+                width: 250px;
+                height: 250px;
+            }
+
+            .hero-text-right {
+                order: 3;
+            }
+
+            .hero-text-left h2, .hero-text-right h2 {
+                font-size: 2em;
+            }
+        }
+       
+
+        /* Section 2 - Carrousel vidéo */
+        .carousel-section {
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, #0a0a0a 0%, #16213e 100%);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .carousel-section.fullscreen-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1000;
+        }
+
+        .carousel-container {
+            display: flex;
+            transition: transform 0.5s ease;
+            height: 100%;
+        }
+
+        .carousel-slide {
+            min-width: 50%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .video-placeholder {
+            width: 90%;
+            height: 80%;
+            background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
+            border: 2px solid #00d4ff;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-placeholder::before {
+            content: "▶";
+            font-size: 4em;
+            color: #00d4ff;
+            text-shadow: 0 0 20px #00d4ff;
+        }
+
+        .video-placeholder::after {
+            content: attr(data-title);
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 1.2em;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+
+        .blue-line{
+            background:#00c2ef;
+            width:100%;
+            padding:10px;
+            font-size:22px;
+            text-align:center;
+        }
+
+        /* Section 3 - Canvas */
+        .canvas-section {
+            min-height: 800px;
+            width: 100%;
+            background: linear-gradient(180deg, #16213e 0%, #0a0a0a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .canvas-placeholder {
+            width: 100%;
+            height: 800px;
+            border: 2px dashed #00d4ff;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        /* Section 4 - Placeholder */
+        .section-four {
+            height: 100vh;
+            background: linear-gradient(180deg, #0a0b0b, #000);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .section-placeholder {
+            text-align: center;
+            color: #b0b0b0;
+        }
+
+        .section-placeholder h2 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #00d4ff;
+        }
+        .canvas-section {
+            min-height: 800px;
+            width: 100%;
+            background: linear-gradient(180deg, #16213e 0%, #0a0a0a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section3d-title {
+            color: #d1ff48;
+            font-size: 11em;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            position: relative;
+            overflow: visible;
+            text-align: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .section3d-title::before {
+            content: attr(data-before);
+            position: absolute;
+            z-index: -1;
+            color: rgba(209, 255, 72, 0.19);
+            mask: linear-gradient(
+                to bottom,
+                #000 -80%,
+                transparent,
+                #000,
+                transparent 200%
+            );
+            transform: scaleY(-1) translateY(-0.72em);
+        }
+
+        #container3D {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .carousel-video{
+            height: 90%;
+        }
+
+        #container3D.active {
+            opacity: 1;
+        }
+
+        :root {
+            --bee-scale: 0.2;
+            --bee-speed: 0.05;
+            --bee-rotation-speed: 0.1;
+        }
+
+        @media screen and (max-width: 1023px) {
+            .section3d-title {
+                font-size: 5em;
+            }
+        }
+
+        @media screen and (max-width: 767px) {
+            .section3d-title {
+                font-size: 3em;
+            }
+        }
+
+     /* Ligne électrique entre sections */
+.electric-divider-section {
+    width: 100%;
+    background: linear-gradient(180deg, #0a0a0a 0%, #16213e 50%, #0a0a0a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.electric-line-wrapper {
+    position: relative;
+    width: 100%;
+    padding: 0 2px;
+}
+
+.electric-border-outer {
+    border-top: 2px solid rgba(0, 212, 255, 0.5);
+    border-radius: 3px;
+    padding-right: 0.15em;
+    padding-bottom: 0.15em;
+    width: 100%;
+    height: 100%;
+}
+
+.electric-main-line {
+    width: 100%;
+    height: 100%;
+    border-top: 3px solid #00d4ff;
+    border-radius: 3px;
+    margin-top: -4px;
+    margin-left: -4px;
+    filter: url(#electric-line);
+    background: transparent;
+    box-shadow: 
+        0 0 5px #00d4ff,
+        inset 0 0 5px #00d4ff;
+}
+
+.electric-glow-1 {
+    border-top: 3px solid rgba(0, 212, 255, 0.8);
+    border-radius: 3px;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    filter: blur(2px);
+    pointer-events: none;
+}
+
+.electric-glow-2 {
+    border-top: 3px solid rgba(0, 212, 255, 0.6);
+    border-radius: 3px;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    filter: blur(6px);
+    pointer-events: none;
+}
+
+.electric-overlay-1 {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    border-radius: 3px;
+    opacity: 1;
+    mix-blend-mode: overlay;
+    transform: scaleY(8);
+    filter: blur(16px);
+    background: linear-gradient(90deg, white, transparent 30%, transparent 70%, white);
+    pointer-events: none;
+}
+
+.electric-overlay-2 {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    border-radius: 3px;
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+    transform: scaleY(8);
+    filter: blur(16px);
+    background: linear-gradient(90deg, white, transparent 30%, transparent 70%, white);
+    pointer-events: none;
+}
+
+.electric-background-glow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    border-radius: 3px;
+    filter: blur(32px);
+    transform: scaleY(10);
+    opacity: 0.3;
+    z-index: -1;
+    background: linear-gradient(90deg, #00d4ff, transparent, #00d4ff);
+    pointer-events: none;
+}
+
+.section4-container{
+    display: flex;
+      gap: var(--space);
+      inline-size: min(var(--max, 15rem), 100%);
+      flex-direction: row;
+      width: 80%;
+      height: 40%;
+      align-content: center;
+      align-items: center;
+      justify-content: center;
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-areas: "card";
+  place-items: center;
+  aspect-ratio: 4/5;
+  border: 1px solid var(--surface-2);
+  isolation: isolate;
+  transition: border-color 200ms var(--ease-out);
+  user-select: none;
+
+  &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at bottom left,
+          transparent 55%,
+          var(--surface-1)
+        );
+        pointer-events: none;
+        box-shadow: var(--bg) -0.5cqi 0.5cqi 2.5cqi inset;
+        transition: opacity 900ms var(--ease-out);
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    aspect-ratio: 1;
+    background: radial-gradient(circle, var(--bg), transparent 65%);
+    opacity: 0;
+    transition: opacity 800ms var(--ease-out);
+  }
+
+  > * {
+    grid-area: card;
+  }
+
+  svg {
+    position: relative;
+    z-index: 1;
+    width: 30%;
+    height: auto;
+    color: var(--surface-3);
+    transition: 300ms var(--ease-out);
+    transition-property: color, scale;
+  }
+
+  button {
+    opacity: 0;
+  }
+
+  &:focus-within {
+    outline: 5px auto Highlight;
+    outline: 5px auto -webkit-focus-ring-color;
+  }
+
+  &:where(:hover, :focus-within) {
+    border-color: var(--active-color, var(--fg));
+    transition: border-color 800ms var(--ease-in-out);
+  }
+
+  &:where(:hover, :focus-within) svg {
+    color: var(--active-color, var(--fg));
+    scale: 1.1;
+    transition: 300ms var(--ease-in-out);
+  }
+
+  &:where(:hover, :focus-within)::before {
+    opacity: 0;
+  }
+
+  &:where(:hover, :focus-within)::after {
+    opacity: 1;
+  }
+}
+
+        .creepy-btn {
+            background-color: var(--black);
+            border-radius: 1.25em;
+            color: var(--gray1);
+            cursor: pointer;
+            letter-spacing: 1px;
+            min-width: 9em;
+            outline: 0.1875em solid transparent;
+            transition: outline 0.1s linear;
+            -webkit-tap-highlight-color: transparent;
+            position: absolute;
+            margin-top: 80px;
+              width: 20%;
+              min-width: 180px;
+              max-width: 280px;
+              height: 50px;
+              border: 2px solid #00c2ef;
+              bottom:30px;
+        }
+
+        .creepy-btn__cover,
+        .creepy-btn__eye {
+            position: relative;
+        }
+        
+        .creepy-btn__cover {
+            z-index: 2;
+        }
+
+        .creepy-btn,
+        .creepy-btn__pupil {
+            background-color: var(--black);
+        }
+
+        .creepy-btn__cover,
+        .creepy-btn__pupil {
+            border-radius: inherit;
+            display: block;
+        }
+
+        .creepy-btn__cover {
+            background-color: #00c2ef;
+            box-shadow: 0 0 0 0.125em var(--black) inset;
+            padding: 0.5em 1em;
+            position: relative;
+            transform-origin: 1.25em 50%;
+            transition:
+                background-color var(--trans-dur),
+                transform var(--trans-dur) cubic-bezier(0.65, 0, 0.35, 1);
+            z-index: 2;
+            height: 100%;
+            text-align: center;
+              align-content: center;
+        }
+
+        .creepy-btn__eye {
+            animation: eye-blink 3s infinite;
+            background-color: var(--gray1);
+            border-radius: 50%;
+            overflow: hidden;
+            width: 20px;
+            height: 20px;
+        }
+
+        .creepy-btn__eyes,
+        .creepy-btn__pupil {
+            position: absolute;
+        }
+
+        .creepy-btn__eyes {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            right: 1em;
+            bottom: 15px;
+            height: 20px;
+            z-index: 1;
+        }
+
+        .creepy-btn__pupil {
+            aspect-ratio: 1;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease-out;
+        }
+
+        .creepy-btn:focus-visible {
+            outline: 0.1875em solid var(--primary3);
+        }
+
+        .creepy-btn:hover .creepy-btn__cover {
+            background-color: #ca79c6;
+        }
+
+        .creepy-btn:focus-visible .creepy-btn__cover,
+        .creepy-btn:hover .creepy-btn__cover {
+            transform: rotate(-12deg);
+            transition-timing-function: cubic-bezier(0.65, 0, 0.35, 1.65);
+        }
+
+        .creepy-btn:active .creepy-btn__cover {
+            transform: rotate(0);
+            transition-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        @keyframes eye-blink {
+            0%,
+            92%,
+            100% {
+                animation-timing-function: cubic-bezier(0.32, 0, 0.67, 0);
+                height: 20px;
+            }
+            96% {
+                animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+                height: 0;
+            }
+        }
+
+
+        .text {
+          font-weight: 100;
+          font-size: 28px;
+          color: #fafafa;
+        }
+        .dud {
+          color: #757575;
+        }
+    </style>
+</head>
+<body>
+    <svg class="svg-container" style="position: absolute; width: 0; height: 0;">
+    <defs>
+      <filter id="electric-line" colorInterpolationFilters="sRGB" x="-50%" y="-200%" width="200%" height="500%">
+        <feTurbulence type="turbulence" baseFrequency="0.015 0.05" numOctaves="3" result="turb1" seed="1">
+          <animate attributeName="baseFrequency" 
+                   values="0.015 0.05; 0.02 0.06; 0.015 0.05" 
+                   dur="3s" 
+                   repeatCount="indefinite" />
+        </feTurbulence>
+        
+        <feTurbulence type="turbulence" baseFrequency="0.05 0.015" numOctaves="3" result="turb2" seed="2">
+          <animate attributeName="baseFrequency" 
+                   values="0.05 0.015; 0.06 0.02; 0.05 0.015" 
+                   dur="2.5s" 
+                   repeatCount="indefinite" />
+        </feTurbulence>
+        
+        <feTurbulence type="turbulence" baseFrequency="0.03 0.03" numOctaves="2" result="turb3" seed="3">
+          <animate attributeName="baseFrequency" 
+                   values="0.03 0.03; 0.04 0.04; 0.03 0.03" 
+                   dur="4s" 
+                   repeatCount="indefinite" />
+        </feTurbulence>
+        
+        <feBlend in="turb1" in2="turb2" mode="multiply" result="combined1" />
+        <feBlend in="combined1" in2="turb3" mode="screen" result="finalTurb" />
+        
+        <feDisplacementMap in="SourceGraphic" in2="finalTurb" scale="15" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </defs>
+</svg>
+
+        <!-- Section 1: Hero avec image animée -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <div class="hero-text-left">
+                    <h2>Développeur Web</h2>
+                    <p>Passionné par la création de jeux web interactifs et d’animations fluides, avec une attention particulière portée aux performances, à l’optimisation et à l’expérience utilisateur.</p>
+                </div>
+        
+                <div class="image-container" id="imageContainer">
+                    <img src="Content/Images/profil.jpg" 
+                         alt="Profile" class="profile-image" id="profileImage"/>
+                    <canvas class="laser-canvas" id="laserCanvas"></canvas>
+                </div>
+        
+                <div class="hero-text-right">
+                    <h2>Créateur</h2>
+                    <p>Toujours en quête de nouveaux défis, je transforme les idées en réalité digitale avec créativité et précision technique.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Carrousel vidéo -->
+        <section class="carousel-section" id="carouselSection">
+            <div class="blue-line">Travaux réalisés au sein d'Arsenal</div>
+            <div class="carousel-container" id="carouselContainer">
+                <div class="carousel-slide">
+                    <video class="carousel-video" autoplay muted loop playsinline>
+                        <source src="Content/Images/MDC-part1-Couper.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="carousel-slide">
+                    <video class="carousel-video" autoplay muted loop playsinline>
+                        <source src="Content/Images/Noel_couper.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="carousel-slide">
+                    <video class="carousel-video" autoplay muted loop playsinline>
+                        <source src="Content/Images/tetris_Couper.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="carousel-slide">
+                    <video class="carousel-video" autoplay muted loop playsinline>
+                        <source src="Content/Images/TTF1-part2_Couper.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="carousel-slide">
+                    <video class="carousel-video" autoplay muted loop playsinline>
+                        <source src="Content/Images/TTF2-couper.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="carousel-slide">
+                    <video class="carousel-video" autoplay muted loop playsinline>
+                        <source src="Content/Images/TTF3_Couper.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="carousel-slide">
+                    <video class="carousel-video" autoplay muted loop playsinline>
+                        <source src="Content/Images/BlackFriday_Couper.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="carousel-slide">
+                   <video class="carousel-video" autoplay muted loop playsinline>
+                        <source src="Content/Images/Jouet_partie2_Couper.mp4" type="video/mp4">
+                    </video>
+                </div>
+                </div>
+        </section>
+
+        <div class="electric-divider-section">
+            <div class="electric-line-wrapper">
+                <div class="electric-border-outer">
+                    <div class="electric-main-line"></div>
+                </div>
+                <div class="electric-glow-1"></div>
+                <div class="electric-glow-2"></div>
+                <div class="electric-overlay-1"></div>
+                <div class="electric-overlay-2"></div>
+                <div class="electric-background-glow"></div>
+            </div>
+        </div>
+
+        <!-- Section 3: Canvas -->
+       <section class="canvas-section" id="canvasSection">
+            <div class="section3d-title" data-before="Exemple 3D">Exemple 3D</div>
+            <div id="container3D"></div>
+        </section>
+
+        <div class="electric-divider-section">
+            <div class="electric-line-wrapper">
+                <div class="electric-border-outer">
+                    <div class="electric-main-line"></div>
+                </div>
+                <div class="electric-glow-1"></div>
+                <div class="electric-glow-2"></div>
+                <div class="electric-overlay-1"></div>
+                <div class="electric-overlay-2"></div>
+                <div class="electric-background-glow"></div>
+            </div>
+        </div>
+
+        <!-- Section 4: Future section -->
+        <section class="section-four">
+            <div style="margin-bottom:15px;">
+              <div class="text"></div>
+            </div>
+
+            <div class="section4-container">
+            <div class="card" style="--active-color: #00c2ef" onclick="window.location.href='Content/Images/CV_BELLOU.pdf'; event.stopPropagation();">
+                <pixel-canvas data-gap="10" data-speed="25" data-colors="#00c2ef, #7dd3fc, #0ea5e9"></pixel-canvas>
+                
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path opacity="0.5" d="M3 15C3 17.8284 3 19.2426 3.87868 20.1213C4.75736 21 6.17157 21 9 21H15C17.8284 21 19.2426 21 20.1213 20.1213C21 19.2426 21 17.8284 21 15" stroke="#1C274C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 3V16M12 16L16 11.625M12 16L8 11.625" stroke="currentcolor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+
+            <div class="card" style="--active-color: #ca79c6" onclick="window.location.href='game.html';">
+                <pixel-canvas data-gap="3" data-speed="20" data-colors="#ca79c6, #7d4b7b, #492c48"></pixel-canvas>
+                <svg width="32" height="32" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--emojione-monotone" preserveAspectRatio="xMidYMid meet"><path d="M61.876 44.196l-4.394-22.105c-.966-5.144-5.386-9.037-10.714-9.087V13H17.337c-5.375-.002-9.853 3.914-10.825 9.093L2.125 44.196c-.082.39-.13.79-.125 1.205C1.995 48.493 4.461 51 7.504 51c1.962 0 3.683-1.039 4.661-2.607l7.24-9.039a6.422 6.422 0 0 0 4.418 1.765c3.578-.002 6.479-2.949 6.479-6.591l3.5-.001c0 3.639 2.904 6.59 6.482 6.59a6.418 6.418 0 0 0 4.355-1.704l7.195 8.98c.977 1.564 2.7 2.607 4.657 2.607c3.043 0 5.512-2.507 5.509-5.601a5.796 5.796 0 0 0-.124-1.203m-40.955-23.01c.703-.716 1.506-.507 1.789.465l-.004 3.126c-.279.973-1.082 1.183-1.783.468l-.719-.73a1.866 1.866 0 0 1 0-2.6l.717-.729m-5.117-3.427l3.072-.003c.955.282 1.16 1.102.455 1.817l-.712.728a1.794 1.794 0 0 1-2.56 0l-.718-.729c-.704-.715-.499-1.534.463-1.813m-2.047 7.483c-.705.718-1.511.508-1.79-.465l.004-3.126c.275-.973 1.081-1.182 1.784-.466l.716.729a1.864 1.864 0 0 1 0 2.6l-.714.728m5.119 3.429l-3.076.003c-.958-.286-1.163-1.101-.458-1.817l.718-.729a1.795 1.795 0 0 1 2.559-.001l.715.73c.702.716.495 1.531-.458 1.814m4.942 10.268c-2.396.002-4.343-1.973-4.343-4.413c0-2.438 1.947-4.416 4.348-4.416c2.395.003 4.339 1.978 4.339 4.415c.003 2.442-1.944 4.418-4.344 4.414m20.263-19.406c.996.002 1.805.825 1.805 1.839c.002 1.019-.807 1.844-1.809 1.839c-1 .003-1.809-.82-1.809-1.837c.001-1.016.809-1.839 1.813-1.841m-3.797 19.408c-2.396 0-4.34-1.977-4.342-4.415c.002-2.438 1.945-4.416 4.342-4.416c2.401.002 4.346 1.978 4.344 4.416c0 2.438-1.942 4.413-4.344 4.415m3.963-10.208c-1 0-1.81-.826-1.81-1.841c-.001-1.017.81-1.841 1.81-1.841s1.808.824 1.811 1.841c0 1.016-.813 1.841-1.811 1.841m5.045-11.037c.999-.001 1.809.822 1.811 1.839c-.002 1.014-.812 1.839-1.811 1.839c-1 0-1.809-.825-1.809-1.839c-.002-1.018.805-1.843 1.809-1.839m.168 9.197c-.998.001-1.808-.822-1.805-1.838c-.003-1.017.807-1.842 1.807-1.839c.998-.002 1.81.82 1.81 1.836c-.001 1.018-.812 1.842-1.812 1.841" fill="currentcolor"></path></svg>
+               
+            </div>
+
+           </div>
+            <div class="creepy-btn" id="creepyBtn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                    <span class="creepy-btn__eyes" id="eyes">
+                        <span class="creepy-btn__eye">
+                            <span class="creepy-btn__pupil" id="pupil1"></span>
+                        </span>
+                        <span class="creepy-btn__eye">
+                            <span class="creepy-btn__pupil" id="pupil2"></span>
+                        </span>
+                    </span>
+                    <span class="creepy-btn__cover">Retourner en haut </span>
+                </div>
+        </section>
+
+    <script>
+        // [TOUT TON JAVASCRIPT ICI - je l'ai laissé intact]
+        // Animation des étincelles, carrousel, rayon laser, scène 3D, etc.
+        // ... (copie tout le JavaScript de ton fichier original)
+	    // Animation des étincelles et chute d'image
+    function createSpark(x, y) {
+        const spark = document.createElement('div');
+        spark.className = 'spark';
+        spark.style.left = x + 'px';
+        spark.style.top = y + 'px';
+        document.getElementById('imageContainer').appendChild(spark);
+        
+        // Animation d'apparition et disparition
+        setTimeout(() => {
+            spark.style.opacity = '1';
+            spark.style.transform = 'scale(1.5)';
+        }, 10);
+        
+        setTimeout(() => {
+            spark.style.opacity = '0';
+            spark.style.transform = 'scale(0)';
+        }, 300);
+        
+        setTimeout(() => {
+            spark.remove();
+        }, 500);
+    }
+
+    function startSparkAnimation() {
+        const container = document.getElementById('imageContainer');
+        const centerX = container.offsetWidth / 2;
+        const centerY = container.offsetHeight / 2;
+        const radius = 150;
+        
+        let angle = 0;
+        const sparkInterval = setInterval(() => {
+            const x = centerX + Math.cos(angle) * radius - 2;
+            const y = centerY + Math.sin(angle) * radius - 2;
+            createSpark(x, y);
+            
+            angle += 0.3;
+            if (angle >= Math.PI * 2) {
+                clearInterval(sparkInterval);
+                // Faire tomber l'image après les étincelles
+                setTimeout(() => {
+                    const topImage = document.getElementById('topImage');
+                    topImage.style.transform = 'translateY(1000px) rotate(180deg)';
+                    topImage.style.opacity = '0';
+                }, 500);
+            }
+        }, 50);
+    }
+
+    // Démarrer l'animation après 2 secondes
+    setTimeout(startSparkAnimation, 2000);
+
+    // Gestion du carrousel
+    // Remplacer tout le JavaScript à partir de la ligne "// Gestion du carrousel"
+
+    let currentSlide = 0;
+    const totalSlides = 8;
+    let carouselState = 'normal';
+    let autoSlideInterval;
+    let isExiting = false; // Flag pour éviter les re-entrées
+    let exitCooldown = false; // Cooldown après sortie
+
+    // Éléments DOM
+    const carouselSection = document.getElementById('carouselSection');
+    const body = document.body;
+
+    function updateCarousel() {
+        const container = document.getElementById('carouselContainer');
+        const slideWidth = window.innerWidth * 0.5;
+        container.style.transform = `translateX(-${currentSlide * slideWidth}px)`;
+    }
+
+    function nextSlide() {
+        if (currentSlide < totalSlides - 2) {
+            currentSlide++;
+            updateCarousel();
+        }
+    }
+
+    function prevSlide() {
+        if (currentSlide > 0) {
+            currentSlide--;
+            updateCarousel();
+        }
+    }
+
+    function startAutoSlide() {
+        if (autoSlideInterval) clearInterval(autoSlideInterval);
+        autoSlideInterval = setInterval(() => {
+            if (carouselState === 'normal' && !isExiting && !exitCooldown) {
+                nextSlide();
+            }
+        }, 3000);
+    }
+
+    function stopAutoSlide() {
+        if (autoSlideInterval) {
+            clearInterval(autoSlideInterval);
+            autoSlideInterval = null;
+        }
+    }
+
+    // Transition vers le mode plein écran
+    function enterFullscreenMode() {
+        if (carouselState !== 'normal' || isExiting || exitCooldown) return;
+
+        carouselState = 'transitioning-in';
+        stopAutoSlide();
+        body.style.overflow = 'hidden';
+
+        carouselSection.classList.add('fullscreen-mode');
+
+        setTimeout(() => {
+            if (!isExiting) { // Vérifier qu'on n'est pas en train de sortir
+                carouselState = 'carousel-mode';
+                window.addEventListener('wheel', handleCarouselScroll, { passive: false });
+            }
+        }, 500);
+    }
+
+    // Sortie DÉFINITIVE du mode plein écran
+    function exitFullscreenMode(direction) {
+        if (carouselState !== 'carousel-mode' || isExiting) return;
+
+        // Marquer qu'on est en train de sortir
+        isExiting = true;
+        carouselState = 'transitioning-out';
+
+        // Désactiver immédiatement le contrôle du carrousel
+        window.removeEventListener('wheel', handleCarouselScroll);
+
+        // Retirer la classe fullscreen
+        carouselSection.classList.remove('fullscreen-mode');
+
+        // Restaurer le scroll normal immédiatement
+        body.style.overflow = 'auto';
+
+        if (direction === 'up') {
+            // Sortie vers le haut - téléporter vers la fin de la section 1
+            setTimeout(() => {
+                const heroSection = document.querySelector('.hero-section');
+                const targetScroll = heroSection.offsetTop + heroSection.offsetHeight - 50;
+
+                window.scrollTo({
+                    top: targetScroll,
+                    behavior: 'auto'
+                });
+
+                finalizateExit();
+            }, 500);
+
+        } else if (direction === 'down') {
+            // Sortie vers le bas - RESTER À LA POSITION ACTUELLE du carrousel
+            setTimeout(() => {
+                // Calculer la position actuelle du carrousel dans le document
+                const carouselTop = carouselSection.offsetTop;
+
+                // Rester à la position du carrousel (pas de téléportation)
+                window.scrollTo({
+                    top: carouselTop,
+                    behavior: 'auto'
+                });
+
+                finalizateExit();
+            }, 500);
+        }
+    }
+
+    function finalizateExit() {
+        // Activer le cooldown pour empêcher la re-entrée
+        exitCooldown = true;
+
+        setTimeout(() => {
+            isExiting = false;
+            carouselState = 'normal';
+
+            // Cooldown pour éviter la re-détection
+            setTimeout(() => {
+                exitCooldown = false;
+                startAutoSlide();
+            }, 1000);
+
+        }, 100);
+    }
+
+    // Gestion du scroll dans le carrousel - SIMPLIFIÉE
+    function handleCarouselScroll(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (isExiting || carouselState !== 'carousel-mode') return false;
+
+        const delta = event.deltaY;
+
+        if (delta > 0) {
+            // Scroll vers le bas
+            if (currentSlide < totalSlides - 2) {
+                currentSlide++;
+                updateCarousel();
+            } else {
+                // FIN du carrousel - sortie immédiate
+                exitFullscreenMode('down');
+            }
+        } else {
+            // Scroll vers le haut
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateCarousel();
+            } else {
+                // DÉBUT du carrousel - sortie immédiate
+                exitFullscreenMode('up');
+            }
+        }
+
+        return false;
+    }
+
+    // Détection de position - avec protection
+    function checkCarouselPosition() {
+        // Ne pas détecter si on est en sortie ou en cooldown
+        if (carouselState !== 'normal' || isExiting || exitCooldown) return;
+
+        const rect = carouselSection.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+
+        const currentScrollY = window.scrollY;
+        const scrollDirection = currentScrollY > (window.lastScrollY || 0) ? 'down' : 'up';
+        window.lastScrollY = currentScrollY;
+
+        // Conditions PLUS strictes pour éviter les re-entrées
+        if (scrollDirection === 'down') {
+            // On descend - le haut du carrousel doit être pile en haut
+            if (rect.top <= 10 && rect.top >= -10 && rect.bottom > windowHeight * 0.8) {
+                enterFullscreenMode();
+            }
+        } else if (scrollDirection === 'up') {
+            // On remonte - le bas du carrousel doit être pile en bas
+            if (rect.bottom >= windowHeight - 10 && rect.bottom <= windowHeight + 10 && rect.top < windowHeight * 0.2) {
+                enterFullscreenMode();
+            }
+        }
+    }
+
+    // Écouteur de scroll - PROTÉGÉ
+    function handleMainScroll() {
+        // Ignorer complètement le scroll si on est en mode carrousel ou en transition
+        if (carouselState === 'carousel-mode' || isExiting || exitCooldown) {
+            return;
+        }
+
+        if (carouselState === 'normal') {
+            checkCarouselPosition();
+        }
+    }
+
+    // Gestion tactile simplifiée
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    carouselSection.addEventListener('touchstart', (e) => {
+        if (carouselState === 'carousel-mode' && !isExiting) {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }
+    });
+
+    carouselSection.addEventListener('touchmove', (e) => {
+        if (carouselState === 'carousel-mode' && !isExiting) {
+            e.preventDefault();
+        }
+    });
+
+    carouselSection.addEventListener('touchend', (e) => {
+        if (carouselState === 'carousel-mode' && !isExiting) {
+            const touchEndX = e.changedTouches[0].screenX;
+            const touchEndY = e.changedTouches[0].screenY;
+
+            const deltaX = touchStartX - touchEndX;
+            const deltaY = touchStartY - touchEndY;
+
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+                // Swipe horizontal
+                if (deltaX > 0 && currentSlide < totalSlides - 2) {
+                    currentSlide++;
+                    updateCarousel();
+                } else if (deltaX < 0 && currentSlide > 0) {
+                    currentSlide--;
+                    updateCarousel();
+                } else if (deltaX > 0 && currentSlide >= totalSlides - 2) {
+                    exitFullscreenMode('down');
+                } else if (deltaX < 0 && currentSlide <= 0) {
+                    exitFullscreenMode('up');
+                }
+            } else if (Math.abs(deltaY) > 50) {
+                // Swipe vertical
+                if (deltaY > 0 && currentSlide <= 0) {
+                    exitFullscreenMode('up');
+                } else if (deltaY < 0 && currentSlide >= totalSlides - 2) {
+                    exitFullscreenMode('down');
+                }
+            }
+        }
+    });
+
+    // Initialisation
+    window.addEventListener('scroll', handleMainScroll, { passive: true });
+    window.addEventListener('resize', updateCarousel);
+
+    // Reset au chargement
+    isExiting = false;
+    exitCooldown = false;
+    carouselState = 'normal';
+
+    // Démarrer l'auto-slide
+    startAutoSlide();
+
+    console.log('Système de carrousel sans accoups initialisé !');
+
+
+
+
+
+
+
+
+    // Animation du rayon laser autour de l'image de profil
+    (function () {
+        const canvas = document.getElementById('laserCanvas');
+        const ctx = canvas.getContext('2d');
+        const imageContainer = document.getElementById('imageContainer');
+
+        // Variables pour le rayon laser (adaptées du code original)
+        let cw, ch;
+        const rand = function (a, b) { return ~~((Math.random() * (b - a + 1)) + a); };
+        const dToR = function (degrees) { return degrees * (Math.PI / 180); };
+
+        const circle = {
+            x: 0, // Centre du canvas
+            y: 0, // Centre du canvas 
+            radius: 150, // Taille adaptée à l'image (300px / 2)
+            speed: 2,
+            rotation: 0,
+            angleStart: 270,
+            angleEnd: 90,
+            hue: 220, // Couleur bleue du code original
+            thickness: 18,
+            blur: 25
+        };
+
+        let particles = [];
+        const particleMax = 100;
+
+        // Fonction pour redimensionner le canvas
+        function resizeCanvas() {
+            const containerRect = imageContainer.getBoundingClientRect();
+            const imageSize = window.innerWidth <= 600 ? 250 : 300;
+
+            // Canvas plus grand que l'image pour contenir le rayon
+            cw = canvas.width = imageSize + 100;
+            ch = canvas.height = imageSize + 100;
+
+            // Centre du canvas
+            circle.x = cw / 2;
+            circle.y = ch / 2;
+            circle.radius = imageSize / 2 + 10; // Légèrement plus grand que l'image
+
+            // Repositionner le canvas
+            canvas.style.width = cw + 'px';
+            canvas.style.height = ch + 'px';
+        }
+
+        // Fonctions du rayon laser (adaptées du code original)
+        const updateCircle = function () {
+            if (circle.rotation < 360) {
+                circle.rotation += circle.speed;
+            } else {
+                circle.rotation = 0;
+            }
+        };
+
+        const renderCircle = function () {
+            ctx.save();
+            ctx.translate(circle.x, circle.y);
+            ctx.rotate(dToR(circle.rotation));
+            ctx.beginPath();
+            ctx.arc(0, 0, circle.radius, dToR(circle.angleStart), dToR(circle.angleEnd), true);
+            ctx.lineWidth = circle.thickness;
+            ctx.strokeStyle = gradient1;
+            ctx.stroke();
+            ctx.restore();
+        };
+
+        const renderCircleBorder = function () {
+            ctx.save();
+            ctx.translate(circle.x, circle.y);
+            ctx.rotate(dToR(circle.rotation));
+            ctx.beginPath();
+            ctx.arc(0, 0, circle.radius + (circle.thickness / 2), dToR(circle.angleStart), dToR(circle.angleEnd), true);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = gradient2;
+            ctx.stroke();
+            ctx.restore();
+        };
+
+        const renderCircleFlare = function () {
+            ctx.save();
+            ctx.translate(circle.x, circle.y);
+            ctx.rotate(dToR(circle.rotation + 185));
+            ctx.scale(1, 1);
+            ctx.beginPath();
+            ctx.arc(0, circle.radius, 30, 0, Math.PI * 2, false);
+            ctx.closePath();
+            const gradient3 = ctx.createRadialGradient(0, circle.radius, 0, 0, circle.radius, 30);
+            gradient3.addColorStop(0, 'hsla(330, 50%, 50%, .35)');
+            gradient3.addColorStop(1, 'hsla(330, 50%, 50%, 0)');
+            ctx.fillStyle = gradient3;
+            ctx.fill();
+            ctx.restore();
+        };
+
+        const renderCircleFlare2 = function () {
+            ctx.save();
+            ctx.translate(circle.x, circle.y);
+            ctx.rotate(dToR(circle.rotation + 165));
+            ctx.scale(1.5, 1);
+            ctx.beginPath();
+            ctx.arc(0, circle.radius, 25, 0, Math.PI * 2, false);
+            ctx.closePath();
+            const gradient4 = ctx.createRadialGradient(0, circle.radius, 0, 0, circle.radius, 25);
+            gradient4.addColorStop(0, 'hsla(30, 100%, 50%, .2)');
+            gradient4.addColorStop(1, 'hsla(30, 100%, 50%, 0)');
+            ctx.fillStyle = gradient4;
+            ctx.fill();
+            ctx.restore();
+        };
+
+        const createParticles = function () {
+            if (particles.length < particleMax) {
+                particles.push({
+                    x: (circle.x + circle.radius * Math.cos(dToR(circle.rotation - 85))) + (rand(0, circle.thickness * 2) - circle.thickness),
+                    y: (circle.y + circle.radius * Math.sin(dToR(circle.rotation - 85))) + (rand(0, circle.thickness * 2) - circle.thickness),
+                    vx: (rand(0, 100) - 50) / 1000,
+                    vy: (rand(0, 100) - 50) / 1000,
+                    radius: rand(1, 6) / 2,
+                    alpha: rand(10, 20) / 100
+                });
+            }
+        };
+
+        const updateParticles = function () {
+            let i = particles.length;
+            while (i--) {
+                const p = particles[i];
+                p.vx += (rand(0, 100) - 50) / 750;
+                p.vy += (rand(0, 100) - 50) / 750;
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= .01;
+
+                if (p.alpha < .02) {
+                    particles.splice(i, 1);
+                }
+            }
+        };
+
+        const renderParticles = function () {
+            let i = particles.length;
+            while (i--) {
+                const p = particles[i];
+                ctx.beginPath();
+                ctx.fillRect(p.x, p.y, p.radius, p.radius);
+                ctx.closePath();
+                ctx.fillStyle = 'hsla(0, 0%, 100%, ' + p.alpha + ')';
+            }
+        };
+
+        const clear = function () {
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.fillStyle = 'rgba(0, 0, 0, .1)';
+            ctx.fillRect(0, 0, cw, ch);
+            ctx.globalCompositeOperation = 'lighter';
+        };
+
+        const loop = function () {
+            clear();
+            updateCircle();
+            renderCircle();
+            renderCircleBorder();
+            renderCircleFlare();
+            renderCircleFlare2();
+            createParticles();
+            updateParticles();
+            renderParticles();
+        };
+
+        // Initialisation
+        function initLaser() {
+            resizeCanvas();
+
+            // Propriétés constantes du canvas
+            ctx.shadowBlur = circle.blur;
+            ctx.shadowColor = 'hsla(' + circle.hue + ', 80%, 60%, 1)';
+            ctx.lineCap = 'round';
+
+            // Gradients (recreated on resize)
+            window.gradient1 = ctx.createLinearGradient(0, -circle.radius, 0, circle.radius);
+            gradient1.addColorStop(0, 'hsla(' + circle.hue + ', 60%, 50%, .25)');
+            gradient1.addColorStop(1, 'hsla(' + circle.hue + ', 60%, 50%, 0)');
+
+            window.gradient2 = ctx.createLinearGradient(0, -circle.radius, 0, circle.radius);
+            gradient2.addColorStop(0, 'hsla(' + circle.hue + ', 100%, 50%, 0)');
+            gradient2.addColorStop(.1, 'hsla(' + circle.hue + ', 100%, 100%, .7)');
+            gradient2.addColorStop(1, 'hsla(' + circle.hue + ', 100%, 50%, 0)');
+
+            // Démarrer l'animation
+            setInterval(loop, 16);
+
+            console.log('Rayon laser initialisé autour de l\'image !');
+        }
+
+        // Redimensionnement responsive
+        window.addEventListener('resize', function () {
+            resizeCanvas();
+            // Recreer les gradients après redimensionnement
+            window.gradient1 = ctx.createLinearGradient(0, -circle.radius, 0, circle.radius);
+            gradient1.addColorStop(0, 'hsla(' + circle.hue + ', 60%, 50%, .25)');
+            gradient1.addColorStop(1, 'hsla(' + circle.hue + ', 60%, 50%, 0)');
+
+            window.gradient2 = ctx.createLinearGradient(0, -circle.radius, 0, circle.radius);
+            gradient2.addColorStop(0, 'hsla(' + circle.hue + ', 100%, 50%, 0)');
+            gradient2.addColorStop(.1, 'hsla(' + circle.hue + ', 100%, 100%, .7)');
+            gradient2.addColorStop(1, 'hsla(' + circle.hue + ', 100%, 50%, 0)');
+        });
+
+        // Attendre que le DOM soit chargé
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initLaser);
+        } else {
+            initLaser();
+        }
+
+    })();
+
+
+</script>
+
+<script>
+    // Variables globales
+    let scene, camera, renderer, bee, mixer;
+    let isSection3Visible = false;
+
+    // Variables pour le suivi de la souris
+    let mouseX = 0;
+    let mouseY = 0;
+    let targetX = 0;
+    let targetY = 0;
+
+    // Attendre que Three.js soit chargé
+    window.addEventListener('load', function () {
+        console.log('Initialisation de la scène 3D...');
+
+        // Vérifier que Three.js est disponible
+        if (typeof THREE === 'undefined') {
+            console.error('Three.js non chargé !');
+            return;
+        }
+
+        // Petit délai pour s'assurer que GLTFLoader est aussi chargé
+        setTimeout(initScene, 100);
+    });
+
+    // Configuration de la scène
+    function initScene() {
+        console.log('Configuration de la scène...');
+        console.log('THREE disponible:', typeof THREE !== 'undefined');
+        console.log('GLTFLoader disponible:', typeof THREE.GLTFLoader !== 'undefined');
+
+        // Caméra
+        camera = new THREE.PerspectiveCamera(
+            10,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
+        camera.position.z = 13;
+
+        // Scène
+        scene = new THREE.Scene();
+
+        // Renderer
+        renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        // Vérifier que le container existe
+        const container = document.getElementById("container3D");
+        if (!container) {
+            console.error('Container 3D non trouvé !');
+            console.log('Containers disponibles:', document.querySelectorAll('[id*="container"]'));
+            return;
+        }
+
+        container.appendChild(renderer.domElement);
+        console.log('Canvas ajouté au container');
+        console.log('Taille du canvas:', renderer.domElement.width, 'x', renderer.domElement.height);
+
+        // Lumières
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.3);
+        scene.add(ambientLight);
+
+        const topLight = new THREE.DirectionalLight(0xffffff, 1);
+        topLight.position.set(500, 500, 500);
+        scene.add(topLight);
+
+        console.log('Lumières ajoutées');
+
+        // Charger le modèle 3D
+        loadBeeModel();
+
+        // Démarrer l'animation
+        animate();
+
+        // Activer la détection de visibilité
+        checkSection3Visibility();
+
+        console.log('Initialisation terminée');
+    }
+
+    // Chargement du modèle d'abeille
+    function loadBeeModel() {
+        console.log('Tentative de chargement du modèle 3D...');
+
+        // Vérifier que GLTFLoader est disponible
+        if (typeof THREE.GLTFLoader === 'undefined') {
+            console.error('GLTFLoader non disponible ! Création d\'un cube de test...');
+            createTestCube();
+            return;
+        }
+
+        console.log('GLTFLoader disponible, chargement du modèle...');
+        const loader = new THREE.GLTFLoader();
+
+        loader.load(
+            "Content/Images/demon_bee_full_texture.glb", // Chemin vers votre fichier local
+            function (gltf) {
+                console.log('Modèle chargé avec succès !', gltf);
+                bee = gltf.scene;
+
+                // Taille ajustable (par défaut 0.2)
+                const beeScale = 0.2;
+                bee.scale.set(beeScale, beeScale, beeScale);
+
+                scene.add(bee);
+                console.log('Abeille ajoutée à la scène');
+
+                // Animation
+                if (gltf.animations && gltf.animations.length > 0) {
+                    mixer = new THREE.AnimationMixer(bee);
+                    mixer.clipAction(gltf.animations[0]).play();
+                    console.log('Animation de l\'abeille activée');
+                } else {
+                    console.log('Pas d\'animations trouvées dans le modèle');
+                }
+
+                console.log("Abeille 3D intégrée avec succès !");
+            },
+            function (xhr) {
+                if (xhr.lengthComputable) {
+                    const percentComplete = (xhr.loaded / xhr.total) * 100;
+                    console.log(percentComplete.toFixed(2) + "% chargé");
+                }
+            },
+            function (error) {
+                console.error("Erreur lors du chargement du modèle 3D:", error);
+                console.log("Chemin testé: Content/Images/demon_bee_full_texture.glb");
+                console.log("Vérifiez que le fichier existe et est accessible");
+
+                // Créer un cube de test à la place
+                createTestCube();
+            }
+        );
+    }
+
+    // Créer un cube de test si l'abeille ne charge pas
+    function createTestCube() {
+        console.log('Création d\'un cube de test...');
+        const geometry = new THREE.BoxGeometry(2, 2, 2);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x00d4ff,
+            wireframe: false
+        });
+        bee = new THREE.Mesh(geometry, material);
+        scene.add(bee);
+        console.log('Cube de test ajouté à la position:', bee.position);
+
+        // Animation de rotation pour le cube
+        bee.userData = { isTestCube: true };
+    }
+
+    // Mise à jour de la position de l'abeille
+    function updateBeePosition() {
+        if (bee && isSection3Visible) {
+            // Vitesses
+            const speed = 0.05;
+            const rotationSpeed = 0.1;
+
+            // Position douce
+            bee.position.x += (targetX - bee.position.x) * speed;
+            bee.position.y += (targetY - bee.position.y) * speed;
+
+            // Si c'est le cube de test, ajouter une rotation
+            if (bee.userData && bee.userData.isTestCube) {
+                bee.rotation.x += 0.01;
+                bee.rotation.y += 0.01;
+            } else {
+                // Rotation vers le curseur pour l'abeille
+                const deltaX = targetX - bee.position.x;
+                const deltaY = targetY - bee.position.y;
+
+                const targetRotationY = Math.atan2(deltaX, Math.abs(deltaY));
+                const targetRotationX = -Math.atan2(deltaY, Math.abs(deltaX)) * 0.3;
+                const targetRotationZ = -deltaX * 0.1;
+
+                bee.rotation.y += (targetRotationY - bee.rotation.y) * rotationSpeed;
+                bee.rotation.x += (targetRotationX - bee.rotation.x) * rotationSpeed;
+                bee.rotation.z += (targetRotationZ - bee.rotation.z) * rotationSpeed;
+            }
+        }
+    }
+
+    // Boucle de rendu
+    function animate() {
+        requestAnimationFrame(animate);
+
+        if (renderer && scene && camera) {
+            renderer.render(scene, camera);
+            if (mixer) mixer.update(0.02);
+            updateBeePosition();
+        }
+    }
+
+    // Détection de visibilité de la section 3
+    function checkSection3Visibility() {
+        const section3 = document.getElementById('canvasSection');
+        if (!section3) {
+            console.log('Section canvasSection non trouvée');
+            return;
+        }
+
+        const rect = section3.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+
+        // Section visible si elle occupe au moins 30% de l'écran
+        const isVisible = rect.top < windowHeight * 0.7 && rect.bottom > windowHeight * 0.3;
+
+        if (isVisible && !isSection3Visible) {
+            // Activer l'animation 3D
+            isSection3Visible = true;
+            const container = document.getElementById('container3D');
+            if (container) {
+                container.classList.add('active');
+            }
+            console.log("Animation 3D activée - Section 3 visible");
+        } else if (!isVisible && isSection3Visible) {
+            // Désactiver l'animation 3D
+            isSection3Visible = false;
+            const container = document.getElementById('container3D');
+            if (container) {
+                container.classList.remove('active');
+            }
+            console.log("Animation 3D désactivée - Section 3 non visible");
+        }
+    }
+
+    // Gestionnaires d'événements
+    window.addEventListener('mousemove', function (event) {
+        mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+        mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        targetX = mouseX * 5;
+        targetY = mouseY * 3;
+    });
+
+    // Redimensionnement
+    window.addEventListener("resize", function () {
+        if (camera && renderer) {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            console.log('Taille mise à jour:', window.innerWidth, 'x', window.innerHeight);
+        }
+    });
+
+    // Observer de scroll pour optimiser les performances
+    window.addEventListener('scroll', checkSection3Visibility);
+
+    // Debug initial
+    console.log('Script 3D chargé, en attente du DOM...');
+
+
+    //Section 4
+
+    class Pixel {
+        constructor(canvas, context, x, y, color, speed, delay) {
+            this.width = canvas.width;
+            this.height = canvas.height;
+            this.ctx = context;
+            this.x = x;
+            this.y = y;
+            this.color = color;
+            this.speed = this.getRandomValue(0.1, 0.9) * speed;
+            this.size = 0;
+            this.sizeStep = Math.random() * 0.4;
+            this.minSize = 0.5;
+            this.maxSizeInteger = 2;
+            this.maxSize = this.getRandomValue(this.minSize, this.maxSizeInteger);
+            this.delay = delay;
+            this.counter = 0;
+            this.counterStep = Math.random() * 4 + (this.width + this.height) * 0.01;
+            this.isIdle = false;
+            this.isReverse = false;
+            this.isShimmer = false;
+        }
+
+        getRandomValue(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        draw() {
+            const centerOffset = this.maxSizeInteger * 0.5 - this.size * 0.5;
+
+            this.ctx.fillStyle = this.color;
+            this.ctx.fillRect(
+                this.x + centerOffset,
+                this.y + centerOffset,
+                this.size,
+                this.size
+            );
+        }
+
+        appear() {
+            this.isIdle = false;
+
+            if (this.counter <= this.delay) {
+                this.counter += this.counterStep;
+                return;
+            }
+
+            if (this.size >= this.maxSize) {
+                this.isShimmer = true;
+            }
+
+            if (this.isShimmer) {
+                this.shimmer();
+            } else {
+                this.size += this.sizeStep;
+            }
+
+            this.draw();
+        }
+
+        disappear() {
+            this.isShimmer = false;
+            this.counter = 0;
+
+            if (this.size <= 0) {
+                this.isIdle = true;
+                return;
+            } else {
+                this.size -= 0.1;
+            }
+
+            this.draw();
+        }
+
+        shimmer() {
+            if (this.size >= this.maxSize) {
+                this.isReverse = true;
+            } else if (this.size <= this.minSize) {
+                this.isReverse = false;
+            }
+
+            if (this.isReverse) {
+                this.size -= this.speed;
+            } else {
+                this.size += this.speed;
+            }
+        }
+    }
+
+    class PixelCanvas extends HTMLElement {
+        static register(tag = "pixel-canvas") {
+            if ("customElements" in window) {
+                customElements.define(tag, this);
+            }
+        }
+
+        static css = `
+                    :host {
+                      display: grid;
+                      inline-size: 100%;
+                      block-size: 100%;
+                      overflow: hidden;
+                    }
+                  `;
+
+        get colors() {
+            return this.dataset.colors?.split(",") || ["#f8fafc", "#f1f5f9", "#cbd5e1"];
+        }
+
+        get gap() {
+            const value = this.dataset.gap || 5;
+            const min = 4;
+            const max = 50;
+
+            if (value <= min) {
+                return min;
+            } else if (value >= max) {
+                return max;
+            } else {
+                return parseInt(value);
+            }
+        }
+
+        get speed() {
+            const value = this.dataset.speed || 35;
+            const min = 0;
+            const max = 100;
+            const throttle = 0.001;
+
+            if (value <= min || this.reducedMotion) {
+                return min;
+            } else if (value >= max) {
+                return max * throttle;
+            } else {
+                return parseInt(value) * throttle;
+            }
+        }
+
+        get noFocus() {
+            return this.hasAttribute("data-no-focus");
+        }
+
+        connectedCallback() {
+            const canvas = document.createElement("canvas");
+            const sheet = new CSSStyleSheet();
+
+            this._parent = this.parentNode;
+            this.shadowroot = this.attachShadow({ mode: "open" });
+
+            sheet.replaceSync(PixelCanvas.css);
+
+            this.shadowroot.adoptedStyleSheets = [sheet];
+            this.shadowroot.append(canvas);
+            this.canvas = this.shadowroot.querySelector("canvas");
+            this.ctx = this.canvas.getContext("2d");
+            this.timeInterval = 1000 / 60;
+            this.timePrevious = performance.now();
+            this.reducedMotion = window.matchMedia(
+                "(prefers-reduced-motion: reduce)"
+            ).matches;
+
+            this.init();
+            this.resizeObserver = new ResizeObserver(() => this.init());
+            this.resizeObserver.observe(this);
+
+            this._parent.addEventListener("mouseenter", this);
+            this._parent.addEventListener("mouseleave", this);
+
+            if (!this.noFocus) {
+                this._parent.addEventListener("focusin", this);
+                this._parent.addEventListener("focusout", this);
+            }
+        }
+
+        disconnectedCallback() {
+            this.resizeObserver.disconnect();
+            this._parent.removeEventListener("mouseenter", this);
+            this._parent.removeEventListener("mouseleave", this);
+
+            if (!this.noFocus) {
+                this._parent.removeEventListener("focusin", this);
+                this._parent.removeEventListener("focusout", this);
+            }
+
+            delete this._parent;
+        }
+
+        handleEvent(event) {
+            this[`on${event.type}`](event);
+        }
+
+        onmouseenter() {
+            this.handleAnimation("appear");
+        }
+
+        onmouseleave() {
+            this.handleAnimation("disappear");
+        }
+
+        onfocusin(e) {
+            if (e.currentTarget.contains(e.relatedTarget)) return;
+            this.handleAnimation("appear");
+        }
+
+        onfocusout(e) {
+            if (e.currentTarget.contains(e.relatedTarget)) return;
+            this.handleAnimation("disappear");
+        }
+
+        handleAnimation(name) {
+            cancelAnimationFrame(this.animation);
+            this.animation = this.animate(name);
+        }
+
+        init() {
+            const rect = this.getBoundingClientRect();
+            const width = Math.floor(rect.width);
+            const height = Math.floor(rect.height);
+
+            this.pixels = [];
+            this.canvas.width = width;
+            this.canvas.height = height;
+            this.canvas.style.width = `${width}px`;
+            this.canvas.style.height = `${height}px`;
+            this.createPixels();
+        }
+
+        getDistanceToCanvasCenter(x, y) {
+            const dx = x - this.canvas.width / 2;
+            const dy = y - this.canvas.height / 2;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            return distance;
+        }
+
+        createPixels() {
+            for (let x = 0; x < this.canvas.width; x += this.gap) {
+                for (let y = 0; y < this.canvas.height; y += this.gap) {
+                    const color = this.colors[
+                        Math.floor(Math.random() * this.colors.length)
+                    ];
+                    const delay = this.reducedMotion
+                        ? 0
+                        : this.getDistanceToCanvasCenter(x, y);
+
+                    this.pixels.push(
+                        new Pixel(this.canvas, this.ctx, x, y, color, this.speed, delay)
+                    );
+                }
+            }
+        }
+
+        animate(fnName) {
+            this.animation = requestAnimationFrame(() => this.animate(fnName));
+
+            const timeNow = performance.now();
+            const timePassed = timeNow - this.timePrevious;
+
+            if (timePassed < this.timeInterval) return;
+
+            this.timePrevious = timeNow - (timePassed % this.timeInterval);
+
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+            for (let i = 0; i < this.pixels.length; i++) {
+                this.pixels[i][fnName]();
+            }
+
+            if (this.pixels.every((pixel) => pixel.isIdle)) {
+                cancelAnimationFrame(this.animation);
+            }
+        }
+    }
+
+    PixelCanvas.register();
+
+
+
+
+    //bouton bas de page mama
+    const btn = document.getElementById('creepyBtn');
+    const eyes = document.getElementById('eyes');
+    const pupil1 = document.getElementById('pupil1');
+    const pupil2 = document.getElementById('pupil2');
+
+    function updateEyes(e) {
+        // Récupérer l'événement (souris ou tactile)
+        const userEvent = e.touches ? e.touches[0] : e;
+
+        // Obtenir le centre du conteneur des yeux
+        const eyesRect = eyes.getBoundingClientRect();
+        const eyesCenter = {
+            x: eyesRect.left + eyesRect.width / 2,
+            y: eyesRect.top + eyesRect.height / 2
+        };
+
+        // Position du curseur
+        const cursor = {
+            x: userEvent.clientX,
+            y: userEvent.clientY
+        };
+
+        // Calculer l'angle du regard
+        const dx = cursor.x - eyesCenter.x;
+        const dy = cursor.y - eyesCenter.y;
+        const angle = Math.atan2(-dy, dx) + Math.PI / 2;
+
+        // Distance de la pupille depuis le centre de l'œil
+        const visionRangeX = 180;
+        const visionRangeY = 75;
+        const distance = Math.hypot(dx, dy);
+        const x = Math.sin(angle) * distance / visionRangeX;
+        const y = Math.cos(angle) * distance / visionRangeY;
+
+        // Appliquer la transformation
+        const translateX = -50 + x * 50;
+        const translateY = -50 + y * 50;
+        const transform = `translate(${translateX}%, ${translateY}%)`;
+
+        pupil1.style.transform = transform;
+        pupil2.style.transform = transform;
+    }
+
+    // Événements souris et tactile
+    btn.addEventListener('mousemove', updateEyes);
+    btn.addEventListener('touchmove', updateEyes);
+
+    // Action au clic (optionnel)
+    btn.addEventListener('click', function () {
+        console.log('Bouton cliqué !');
+        // Ajoute ton action ici
+    });
+
+
+
+    //Text Section 4
+    class TextScramble {
+        constructor(el) {
+            this.el = el
+            this.chars = '!<>-_\\/[]{}—=+*^?#________'
+            this.update = this.update.bind(this)
+        }
+        setText(newText) {
+            const oldText = this.el.innerText
+            const length = Math.max(oldText.length, newText.length)
+            const promise = new Promise((resolve) => this.resolve = resolve)
+            this.queue = []
+            for (let i = 0; i < length; i++) {
+                const from = oldText[i] || ''
+                const to = newText[i] || ''
+                const start = Math.floor(Math.random() * 40)
+                const end = start + Math.floor(Math.random() * 40)
+                this.queue.push({ from, to, start, end })
+            }
+            cancelAnimationFrame(this.frameRequest)
+            this.frame = 0
+            this.update()
+            return promise
+        }
+        update() {
+            let output = ''
+            let complete = 0
+            for (let i = 0, n = this.queue.length; i < n; i++) {
+                let { from, to, start, end, char } = this.queue[i]
+                if (this.frame >= end) {
+                    complete++
+                    output += to
+                } else if (this.frame >= start) {
+                    if (!char || Math.random() < 0.28) {
+                        char = this.randomChar()
+                        this.queue[i].char = char
+                    }
+                    output += `<span class="dud">${char}</span>`
+                } else {
+                    output += from
+                }
+            }
+            this.el.innerHTML = output
+            if (complete === this.queue.length) {
+                this.resolve()
+            } else {
+                this.frameRequest = requestAnimationFrame(this.update)
+                this.frame++
+            }
+        }
+        randomChar() {
+            return this.chars[Math.floor(Math.random() * this.chars.length)]
+        }
+    }
+
+
+    const phrases = [
+        '↙️ Télécharger mon CV',
+        'Jouer sur mon CV ⤵️',
+        'et recruter moi',
+        'SVP'
+    ]
+
+    const el = document.querySelector('.text')
+    const fx = new TextScramble(el)
+
+    let counter = 0
+    const next = () => {
+        fx.setText(phrases[counter]).then(() => {
+            setTimeout(next, 800)
+        })
+        counter = (counter + 1) % phrases.length
+    }
+
+    next()
+    </script>
+</body>
+</html>

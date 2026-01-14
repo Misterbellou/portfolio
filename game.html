@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Interactif - Jeu 3D</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #gameCanvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        .game-ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #00d4ff;
+            display: none;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #00d4ff;
+            font-size: 14px;
+        }
+
+        .controls h3 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+
+        .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            z-index: 50;
+            pointer-events: none;
+            display: none;
+        }
+
+        .crosshair::before,
+        .crosshair::after {
+            content: '';
+            position: absolute;
+            background: #00d4ff;
+            box-shadow: 0 0 10px #00d4ff;
+        }
+
+        .crosshair::before {
+            width: 20px;
+            height: 2px;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+
+        .crosshair::after {
+            width: 2px;
+            height: 20px;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                font-size: 12px;
+                padding: 10px;
+            }
+            
+            .game-ui {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="crosshair"></div>
+        
+        <div class="game-ui">
+            <h3>🎮 CV Explorer</h3>
+            <div>Blocs détruits: <span id="blocksDestroyed">0</span></div>
+            <div>Position: <span id="playerPos">X: 0, Z: 0</span></div>
+        </div>
+        
+        <div class="controls">
+            <h3>Contrôles</h3>
+            <div>🎯 <strong>Clic Souris</strong> - Tirer des lasers</div>
+            <div>⬆️ <strong>Z/W</strong> - Avancer</div>
+            <div>⬅️ <strong>Q/A</strong> - Gauche</div>
+            <div>⬇️ <strong>S</strong> - Reculer</div>
+            <div>➡️ <strong>D</strong> - Droite</div>
+            <div>🏃 <strong>Shift</strong> - Courir</div>
+        </div>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script>
+        // [TOUT TON CODE JAVASCRIPT DU JEU ICI]
+        // Variables globales
+        let scene, camera, renderer, player, clock;
+        let walls = [], bricks = [], lasers = [], explosions = [];
+        let keys = {};
+        let blocksDestroyed = 0;
+
+        // Paramètres du jeu
+        const WORLD_WIDTH = 35;
+        const WORLD_HEIGHT = 50;
+        const WALL_HEIGHT = 4;
+        const PLAYER_SPEED = 0.15;
+        const RUN_MULTIPLIER = 2;
+        const LASER_SPEED = 1;
+        const BRICK_SIZE = 0.8;
+
+        let walkAnimation = 0;
+        let isWalking = false;
+
+        // [Copie TOUT le reste du JavaScript de About.aspx ici]
+        // init(), createWorld(), createPlayer(), animate(), etc.
+        
+        // ... (je t'épargne les 1000 lignes mais tu dois tout copier)
+
+	// Initialisation
+	function init() {
+    console.log('🎮 Initialisation du jeu CV...');
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x001122);
+
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 15, 10);
+    camera.lookAt(0, 0, 0);
+
+    renderer = new THREE.WebGLRenderer({
+        canvas: document.getElementById('gameCanvas'),
+        antialias: true
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    clock = new THREE.Clock();
+
+    createWorld();
+    createPlayer();
+    createLights();
+    setupEventListeners();
+
+    animate();
+
+    console.log('✅ Jeu initialisé avec succès !');
+}
+
+function createWorld() {
+    const groundGeometry = new THREE.PlaneGeometry(WORLD_WIDTH, WORLD_HEIGHT);
+    const groundMaterial = new THREE.MeshLambertMaterial({
+        color: 0xffffff,
+        transparent: true
+    });
+
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load('Content/Images/CV_BEBOU_page-0001.jpg', function (texture) {
+        groundMaterial.map = texture;
+        groundMaterial.needsUpdate = true;
+    }, undefined, function (error) {
+        console.error('Erreur de chargement du CV:', error);
+    });
+
+    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    createNeonGround();
+    createNeonPylons();
+    createWalls();
+}
+
+function createNeonGround() {
+    const neonColor = 0xca79c6;
+    const thickness = 1;
+
+    const neonMaterial = new THREE.MeshBasicMaterial({
+        color: neonColor,
+        emissive: neonColor,
+        emissiveIntensity: 2
+    });
+
+    const topLine = new THREE.Mesh(
+        new THREE.BoxGeometry(WORLD_WIDTH + 2, 0.2, thickness),
+        neonMaterial
+    );
+    topLine.position.set(0, 0.1, -WORLD_HEIGHT / 2 - 1);
+    scene.add(topLine);
+
+    const bottomLine = new THREE.Mesh(
+        new THREE.BoxGeometry(WORLD_WIDTH + 2, 0.2, thickness),
+        neonMaterial
+    );
+    bottomLine.position.set(0, 0.1, WORLD_HEIGHT / 2 + 1);
+    scene.add(bottomLine);
+
+    const leftLine = new THREE.Mesh(
+        new THREE.BoxGeometry(thickness, 0.2, WORLD_HEIGHT + 2),
+        neonMaterial
+    );
+    leftLine.position.set(-WORLD_WIDTH / 2 - 1, 0.1, 0);
+    scene.add(leftLine);
+
+    const rightLine = new THREE.Mesh(
+        new THREE.BoxGeometry(thickness, 0.2, WORLD_HEIGHT + 2),
+        neonMaterial
+    );
+    rightLine.position.set(WORLD_WIDTH / 2 + 1, 0.1, 0);
+    scene.add(rightLine);
+}
+
+function createNeonPylons() {
+    const neonColor = 0xca79c6;
+    const pylonHeight = 12;
+    const pylonSize = 1.5;
+
+    const pylonMaterial = new THREE.MeshBasicMaterial({
+        color: neonColor,
+        emissive: neonColor,
+        emissiveIntensity: 2
+    });
+
+    const pylonGeometry = new THREE.BoxGeometry(pylonSize, pylonHeight, pylonSize);
+
+    const corners = [
+        { x: -WORLD_WIDTH / 2 - 1, z: -WORLD_HEIGHT / 2 - 1 },
+        { x: WORLD_WIDTH / 2 + 1, z: -WORLD_HEIGHT / 2 - 1 },
+        { x: -WORLD_WIDTH / 2 - 1, z: WORLD_HEIGHT / 2 + 1 },
+        { x: WORLD_WIDTH / 2 + 1, z: WORLD_HEIGHT / 2 + 1 }
+    ];
+
+    corners.forEach(corner => {
+        const pylon = new THREE.Mesh(pylonGeometry, pylonMaterial.clone());
+        pylon.position.set(corner.x, pylonHeight / 2, corner.z);
+        scene.add(pylon);
+
+        const pylonLight = new THREE.PointLight(neonColor, 2, 15);
+        pylonLight.position.set(corner.x, pylonHeight / 2, corner.z);
+        scene.add(pylonLight);
+    });
+
+    console.log('✨ 4 pylônes néon créés aux coins');
+}
+
+function createWalls() {
+    createBrickWalls();
+    createInteriorObstacles();
+    console.log(`🧱 ${walls.length} structures créées avec ${bricks.length} briques`);
+}
+
+function createBrickWalls() {
+    const brickGeometry = new THREE.BoxGeometry(BRICK_SIZE, BRICK_SIZE, BRICK_SIZE);
+    const brickColors = [0xca79c6, 0x7d4b7b, 0x492c48, 0x301d2f];
+
+    for (let side = 0; side < 2; side++) {
+        const x = side === 0 ? -WORLD_WIDTH / 2 - 1 : WORLD_WIDTH / 2 + 1;
+
+        for (let z = -WORLD_HEIGHT / 2; z <= WORLD_HEIGHT / 2; z += BRICK_SIZE) {
+            for (let y = BRICK_SIZE / 2; y < WALL_HEIGHT; y += BRICK_SIZE) {
+                if (Math.random() > 0.15) {
+                    const brick = createBrick(x, y, z, brickGeometry, brickColors);
+                    bricks.push(brick);
+                    scene.add(brick);
+                }
+            }
+        }
+    }
+
+    for (let side = 0; side < 2; side++) {
+        const z = side === 0 ? -WORLD_HEIGHT / 2 - 1 : WORLD_HEIGHT / 2 + 1;
+
+        for (let x = -WORLD_WIDTH / 2; x <= WORLD_WIDTH / 2; x += BRICK_SIZE) {
+            for (let y = BRICK_SIZE / 2; y < WALL_HEIGHT; y += BRICK_SIZE) {
+                if (Math.random() > 0.15) {
+                    const brick = createBrick(x, y, z, brickGeometry, brickColors);
+                    bricks.push(brick);
+                    scene.add(brick);
+                }
+            }
+        }
+    }
+}
+
+function createBrick(x, y, z, geometry, colors) {
+    const material = new THREE.MeshLambertMaterial({
+        color: colors[Math.floor(Math.random() * colors.length)]
+    });
+    const brick = new THREE.Mesh(geometry, material);
+    brick.position.set(x, y, z);
+    brick.castShadow = true;
+    brick.receiveShadow = true;
+    brick.userData = {
+        type: 'brick',
+        initialPosition: { x, y, z },
+        destroyed: false
+    };
+    return brick;
+}
+
+function createInteriorObstacles() {
+    const numGroups = 8;
+
+    for (let g = 0; g < numGroups; g++) {
+        const centerX = (Math.random() - 0.5) * (WORLD_WIDTH - 8);
+        const centerZ = (Math.random() - 0.5) * (WORLD_HEIGHT - 8);
+
+        const numPylons = Math.floor(Math.random() * 3) + 1;
+
+        for (let p = 0; p < numPylons; p++) {
+            const offsetX = (Math.random() - 0.5) * 4;
+            const offsetZ = (Math.random() - 0.5) * 4;
+            const x = centerX + offsetX;
+            const z = centerZ + offsetZ;
+
+            const pylonHeight = 2 + Math.random() * 3;
+
+            createDestructiblePylon(x, z, pylonHeight);
+        }
+    }
+}
+
+function createDestructiblePylon(x, z, height) {
+    const brickSize = 0.6;
+    const brickGeometry = new THREE.BoxGeometry(brickSize, brickSize, brickSize);
+    const colors = [0x666666, 0x888888, 0x555555, 0x777777];
+
+    const numBricksY = Math.ceil(height / brickSize);
+
+    for (let i = 0; i < numBricksY; i++) {
+        const y = (i + 0.5) * brickSize;
+
+        const brick = createBrick(x, y, z, brickGeometry, colors);
+        brick.userData.type = 'pylon_brick';
+        brick.userData.isPylon = true;
+        bricks.push(brick);
+        scene.add(brick);
+    }
+}
+
+function createPlayer() {
+    player = new THREE.Group();
+
+    const bodyGeometry = new THREE.BoxGeometry(1, 1.2, 0.5);
+    const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x00d4ff });
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    body.position.y = 1.6;
+    body.castShadow = true;
+    player.add(body);
+
+    const headGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+    const headMaterial = new THREE.MeshLambertMaterial({ color: 0xffdbac });
+    const head = new THREE.Mesh(headGeometry, headMaterial);
+    head.position.y = 2.6;
+    head.castShadow = true;
+    player.add(head);
+
+    const launcherRingGeometry = new THREE.TorusGeometry(0.25, 0.08, 16, 32);
+    const launcherRingMaterial = new THREE.MeshLambertMaterial({
+        color: 0x666666,
+        emissive: 0x333333
+    });
+    const launcherRing = new THREE.Mesh(launcherRingGeometry, launcherRingMaterial);
+    launcherRing.position.set(0, 1.7, 0.26);
+    player.add(launcherRing);
+
+    const launcherCoreGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+    const launcherCoreMaterial = new THREE.MeshBasicMaterial({
+        color: 0xca79c6,
+        emissive: 0xca79c6,
+        emissiveIntensity: 2
+    });
+    const launcherCore = new THREE.Mesh(launcherCoreGeometry, launcherCoreMaterial);
+    launcherCore.position.set(0, 1.7, 0.26);
+    player.add(launcherCore);
+
+    const launcherLight = new THREE.PointLight(0xca79c6, 1, 3);
+    launcherLight.position.set(0, 1.7, 0.26);
+    player.add(launcherLight);
+
+    const leftEyeGeometry = new THREE.BoxGeometry(0.15, 0.15, 0.05);
+    const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    const leftEye = new THREE.Mesh(leftEyeGeometry, eyeMaterial);
+    leftEye.position.set(-0.2, 2.7, 0.4);
+    player.add(leftEye);
+
+    const rightEye = new THREE.Mesh(leftEyeGeometry, eyeMaterial);
+    rightEye.position.set(0.2, 2.7, 0.4);
+    player.add(rightEye);
+
+    const crestGeometry = new THREE.BoxGeometry(0.6, 0.3, 0.8);
+    const crestMaterial = new THREE.MeshLambertMaterial({ color: 0x2a2a2a });
+    const crest = new THREE.Mesh(crestGeometry, crestMaterial);
+    crest.position.set(0, 3.05, 0);
+    player.add(crest);
+
+    const armGeometry = new THREE.BoxGeometry(0.3, 1.2, 0.3);
+    const armMaterial = new THREE.MeshLambertMaterial({ color: 0x00d4ff });
+
+    const leftArmPivot = new THREE.Group();
+    leftArmPivot.position.set(-0.65, 2.2, 0);
+    const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+    leftArm.position.y = -0.6;
+    leftArm.castShadow = true;
+    leftArmPivot.add(leftArm);
+    player.add(leftArmPivot);
+    player.leftArmPivot = leftArmPivot;
+
+    const rightArmPivot = new THREE.Group();
+    rightArmPivot.position.set(0.65, 2.2, 0);
+    const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+    rightArm.position.y = -0.6;
+    rightArm.castShadow = true;
+    rightArmPivot.add(rightArm);
+    player.add(rightArmPivot);
+    player.rightArmPivot = rightArmPivot;
+
+    const legGeometry = new THREE.BoxGeometry(0.3, 1.0, 0.3);
+    const legMaterial = new THREE.MeshLambertMaterial({ color: 0x000080 });
+
+    const leftLegPivot = new THREE.Group();
+    leftLegPivot.position.set(-0.25, 1.0, 0);
+    const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+    leftLeg.position.y = -0.5;
+    leftLeg.castShadow = true;
+    leftLegPivot.add(leftLeg);
+    player.add(leftLegPivot);
+    player.leftLegPivot = leftLegPivot;
+
+    const rightLegPivot = new THREE.Group();
+    rightLegPivot.position.set(0.25, 1.0, 0);
+    const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+    rightLeg.position.y = -0.5;
+    rightLeg.castShadow = true;
+    rightLegPivot.add(rightLeg);
+    player.add(rightLegPivot);
+    player.rightLegPivot = rightLegPivot;
+
+    player.position.set(0, 0, 0);
+    scene.add(player);
+
+    console.log('🎯 Joueur créé avec lanceur de missile');
+}
+
+function createLights() {
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(10, 20, 10);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.mapSize.width = 2048;
+    directionalLight.shadow.mapSize.height = 2048;
+    directionalLight.shadow.camera.near = 0.5;
+    directionalLight.shadow.camera.far = 50;
+    directionalLight.shadow.camera.left = -25;
+    directionalLight.shadow.camera.right = 25;
+    directionalLight.shadow.camera.top = 25;
+    directionalLight.shadow.camera.bottom = -25;
+    scene.add(directionalLight);
+}
+
+function setupEventListeners() {
+    document.addEventListener('keydown', (e) => {
+        keys[e.code] = true;
+    });
+
+    document.addEventListener('keyup', (e) => {
+        keys[e.code] = false;
+    });
+
+    document.addEventListener('click', shootLaser);
+    window.addEventListener('resize', onWindowResize);
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+
+function updatePlayer(deltaTime) {
+    let moved = false;
+    let moveDirection = new THREE.Vector3(0, 0, 0);
+    const speed = keys['ShiftLeft'] || keys['ShiftRight'] ?
+        PLAYER_SPEED * RUN_MULTIPLIER : PLAYER_SPEED;
+
+    if (keys['KeyW'] || keys['KeyZ'] || keys['ArrowUp']) {
+        moveDirection.z -= 1;
+        moved = true;
+    }
+    if (keys['KeyS'] || keys['ArrowDown']) {
+        moveDirection.z += 1;
+        moved = true;
+    }
+    if (keys['KeyA'] || keys['KeyQ'] || keys['ArrowLeft']) {
+        moveDirection.x -= 1;
+        moved = true;
+    }
+    if (keys['KeyD'] || keys['ArrowRight']) {
+        moveDirection.x += 1;
+        moved = true;
+    }
+
+    if (moved) {
+        moveDirection.normalize();
+        player.position.x += moveDirection.x * speed;
+        player.position.z += moveDirection.z * speed;
+
+        const targetRotation = Math.atan2(moveDirection.x, moveDirection.z);
+        player.rotation.y = targetRotation;
+
+        if (!isWalking) {
+            isWalking = true;
+        }
+        walkAnimation += deltaTime * 8;
+
+        const swing = Math.sin(walkAnimation) * 0.4;
+        player.leftArmPivot.rotation.x = swing;
+        player.rightArmPivot.rotation.x = -swing;
+        player.leftLegPivot.rotation.x = -swing * 0.8;
+        player.rightLegPivot.rotation.x = swing * 0.8;
+    } else {
+        if (isWalking) {
+            isWalking = false;
+            player.leftArmPivot.rotation.x = 0;
+            player.rightArmPivot.rotation.x = 0;
+            player.leftLegPivot.rotation.x = 0;
+            player.rightLegPivot.rotation.x = 0;
+        }
+    }
+
+    const limitX = WORLD_WIDTH / 2 - 1;
+    const limitZ = WORLD_HEIGHT / 2 - 1;
+    player.position.x = Math.max(-limitX, Math.min(limitX, player.position.x));
+    player.position.z = Math.max(-limitZ, Math.min(limitZ, player.position.z));
+
+    camera.position.x = player.position.x;
+    camera.position.z = player.position.z + 10;
+    camera.lookAt(player.position.x, 0, player.position.z);
+
+    document.getElementById('playerPos').textContent =
+        `X: ${player.position.x.toFixed(1)}, Z: ${player.position.z.toFixed(1)}`;
+}
+
+function shootLaser() {
+    const laserGeometry = new THREE.SphereGeometry(0.15, 8, 8);
+    const laserMaterial = new THREE.MeshBasicMaterial({
+        color: 0xff0000,
+        emissive: 0xff0000,
+        emissiveIntensity: 0.8
+    });
+
+    const laser = new THREE.Mesh(laserGeometry, laserMaterial);
+    laser.position.copy(player.position);
+    laser.position.y += 1.7;
+
+    const direction = new THREE.Vector3(0, 0, 1);
+    direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), player.rotation.y);
+    direction.multiplyScalar(LASER_SPEED);
+
+    laser.userData = {
+        velocity: direction,
+        life: 100
+    };
+
+    lasers.push(laser);
+    scene.add(laser);
+}
+
+function updateLasers() {
+    for (let i = lasers.length - 1; i >= 0; i--) {
+        const laser = lasers[i];
+
+        laser.position.add(laser.userData.velocity);
+        laser.userData.life--;
+
+        checkLaserCollisions(laser, i);
+
+        if (laser.userData.life <= 0 ||
+            Math.abs(laser.position.x) > WORLD_WIDTH ||
+            Math.abs(laser.position.z) > WORLD_HEIGHT) {
+            scene.remove(laser);
+            lasers.splice(i, 1);
+        }
+    }
+
+    updateExplosions();
+}
+
+function createExplosion(position) {
+    const explosionGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+    const explosionMaterial = new THREE.MeshBasicMaterial({
+        color: 0x00d4ff,
+        emissive: 0x00d4ff,
+        emissiveIntensity: 3,
+        transparent: true,
+        opacity: 1
+    });
+
+    const explosion = new THREE.Mesh(explosionGeometry, explosionMaterial);
+    explosion.position.copy(position);
+
+    explosion.userData = {
+        life: 30,
+        maxLife: 30,
+        maxScale: 10,
+        phase: 'expand'
+    };
+
+    explosions.push(explosion);
+    scene.add(explosion);
+
+    const haloGeometry = new THREE.SphereGeometry(0.6, 32, 32);
+    const haloMaterial = new THREE.MeshBasicMaterial({
+        color: 0x0099ff,
+        emissive: 0x0099ff,
+        emissiveIntensity: 2,
+        transparent: true,
+        opacity: 0.6
+    });
+
+    const halo = new THREE.Mesh(haloGeometry, haloMaterial);
+    halo.position.copy(position);
+
+    halo.userData = {
+        life: 30,
+        maxLife: 30,
+        maxScale: 12,
+        phase: 'expand',
+        isHalo: true
+    };
+
+    explosions.push(halo);
+    scene.add(halo);
+
+    const ringGeometry = new THREE.TorusGeometry(0.3, 0.1, 16, 32);
+    const ringMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        emissive: 0x00d4ff,
+        emissiveIntensity: 2,
+        transparent: true,
+        opacity: 0.8
+    });
+
+    const shockRing = new THREE.Mesh(ringGeometry, ringMaterial);
+    shockRing.position.copy(position);
+    shockRing.rotation.x = Math.PI / 2;
+
+    shockRing.userData = {
+        life: 25,
+        maxLife: 25,
+        maxScale: 10,
+        phase: 'expand',
+        isRing: true
+    };
+
+    explosions.push(shockRing);
+    scene.add(shockRing);
+
+    const EXPLOSION_RADIUS = 5;
+    const EXPLOSION_FORCE = 0.3;
+
+    for (let i = bricks.length - 1; i >= 0; i--) {
+        const brick = bricks[i];
+        if (brick.userData.destroyed) continue;
+
+        const distance = position.distanceTo(brick.position);
+
+        if (distance < EXPLOSION_RADIUS) {
+            const direction = new THREE.Vector3()
+                .subVectors(brick.position, position)
+                .normalize();
+
+            const forceFactor = 1 - (distance / EXPLOSION_RADIUS);
+            const force = EXPLOSION_FORCE * forceFactor;
+
+            brick.userData.destroyed = true;
+            brick.userData.falling = true;
+
+            brick.userData.fallVelocity = new THREE.Vector3(
+                direction.x * force,
+                0.2 + (forceFactor * 0.3),
+                direction.z * force
+            );
+
+            brick.userData.rotationSpeed = new THREE.Vector3(
+                (Math.random() - 0.5) * 0.3,
+                (Math.random() - 0.5) * 0.3,
+                (Math.random() - 0.5) * 0.3
+            );
+
+            blocksDestroyed++;
+        }
+    }
+
+    for (let i = walls.length - 1; i >= 0; i--) {
+        const wall = walls[i];
+        const distance = position.distanceTo(wall.position);
+
+        if (distance < EXPLOSION_RADIUS) {
+            scene.remove(wall);
+            walls.splice(i, 1);
+            blocksDestroyed++;
+        }
+    }
+
+    document.getElementById('blocksDestroyed').textContent = blocksDestroyed;
+}
+
+function updateExplosions() {
+    for (let i = explosions.length - 1; i >= 0; i--) {
+        const explosion = explosions[i];
+        explosion.userData.life--;
+
+        const progress = 1 - (explosion.userData.life / explosion.userData.maxLife);
+
+        if (explosion.userData.phase === 'expand') {
+            if (progress < 0.6) {
+                const scale = (progress / 0.6) * explosion.userData.maxScale;
+                explosion.scale.set(scale, scale, scale);
+            } else {
+                explosion.userData.phase = 'shrink';
+            }
+        } else {
+            const shrinkProgress = (progress - 0.6) / 0.4;
+            const scale = explosion.userData.maxScale * (1 - shrinkProgress);
+            explosion.scale.set(scale, scale, scale);
+            explosion.material.opacity = 1 - shrinkProgress;
+        }
+
+        if (explosion.userData.isHalo) {
+            const pulse = Math.sin(explosion.userData.life * 0.5) * 0.2 + 1;
+            explosion.scale.multiplyScalar(pulse);
+        }
+
+        if (explosion.userData.life <= 0) {
+            scene.remove(explosion);
+            explosions.splice(i, 1);
+        }
+    }
+}
+
+function checkLaserCollisions(laser, laserIndex) {
+    let hitSomething = false;
+
+    for (let i = bricks.length - 1; i >= 0; i--) {
+        const brick = bricks[i];
+        if (brick.userData.destroyed) continue;
+
+        const distance = laser.position.distanceTo(brick.position);
+
+        if (distance < 1) {
+            createExplosion(brick.position);
+
+            brick.userData.destroyed = true;
+            const fallVelocity = new THREE.Vector3(
+                (Math.random() - 0.5) * 0.1,
+                0.1,
+                (Math.random() - 0.5) * 0.1
+            );
+            brick.userData.fallVelocity = fallVelocity;
+            brick.userData.falling = true;
+
+            blocksDestroyed++;
+            document.getElementById('blocksDestroyed').textContent = blocksDestroyed;
+
+            hitSomething = true;
+            break;
+        }
+    }
+
+    if (!hitSomething) {
+        for (let i = walls.length - 1; i >= 0; i--) {
+            const wall = walls[i];
+            const distance = laser.position.distanceTo(wall.position);
+
+            if (distance < 1.5) {
+                createExplosion(wall.position);
+
+                wall.userData.hp--;
+
+                wall.material.color.r = 1;
+                setTimeout(() => {
+                    if (wall.material) {
+                        wall.material.color.r = wall.userData.hp > 0 ? 0.4 : 0.2;
+                    }
+                }, 100);
+
+                if (wall.userData.hp <= 0) {
+                    scene.remove(wall);
+                    walls.splice(i, 1);
+                    blocksDestroyed++;
+                    document.getElementById('blocksDestroyed').textContent = blocksDestroyed;
+                }
+
+                hitSomething = true;
+                break;
+            }
+        }
+    }
+
+    if (hitSomething) {
+        scene.remove(laser);
+        lasers.splice(laserIndex, 1);
+    }
+}
+
+function updateFallingBricks() {
+    for (let i = bricks.length - 1; i >= 0; i--) {
+        const brick = bricks[i];
+
+        if (brick.userData.falling) {
+            brick.position.add(brick.userData.fallVelocity);
+            brick.userData.fallVelocity.y -= 0.008;
+
+            if (brick.userData.rotationSpeed) {
+                brick.rotation.x += brick.userData.rotationSpeed.x;
+                brick.rotation.y += brick.userData.rotationSpeed.y;
+                brick.rotation.z += brick.userData.rotationSpeed.z;
+            }
+
+            if (brick.position.y <= 0.1) {
+                brick.position.y = 0.1;
+                brick.userData.falling = false;
+
+                setTimeout(() => {
+                    scene.remove(brick);
+                    const index = bricks.indexOf(brick);
+                    if (index > -1) {
+                        bricks.splice(index, 1);
+                    }
+                }, 2000);
+            }
+        }
+    }
+}
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    const deltaTime = clock.getDelta();
+
+    updatePlayer(deltaTime);
+    updateLasers();
+    updateFallingBricks();
+
+    renderer.render(scene, camera);
+}
+
+window.addEventListener('load', init);
+
+console.log('🎮 Script de jeu chargé !');
+    </script>
+</body>
+</html>
