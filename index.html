@@ -721,6 +721,11 @@
         <section class="carousel-section" id="carouselSection">
             <div class="blue-line">Travaux réalisés au sein d'Arsenal</div>
             <div class="carousel-container" id="carouselContainer">
+		<div class="carousel-slide">
+    			<video class="carousel-video" autoplay muted loop playsinline>
+        			<source src="Content/Images/bikeRace_couper.mp4" type="video/mp4">
+    			</video>
+		</div>
                 <div class="carousel-slide">
                     <video class="carousel-video" autoplay muted loop playsinline>
                         <source src="Content/Images/MDC-part1-Couper.mp4" type="video/mp4">
@@ -761,6 +766,16 @@
                         <source src="Content/Images/Jouet_partie2_Couper.mp4" type="video/mp4">
                     </video>
                 </div>
+		<div class="carousel-slide">
+   			<video class="carousel-video" autoplay muted loop playsinline>
+        			<source src="Content/Images/Snake_Couper.mp4" type="video/mp4">
+    			</video>
+		</div>
+		<div class="carousel-slide">
+   			<video class="carousel-video" autoplay muted loop playsinline>
+        			<source src="Content/Images/tape_taupe_couper.mp4" type="video/mp4">
+    			</video>
+		</div>
                 </div>
         </section>
 
@@ -892,7 +907,7 @@
     // Remplacer tout le JavaScript à partir de la ligne "// Gestion du carrousel"
 
     let currentSlide = 0;
-    const totalSlides = 8;
+    const totalSlides = 11;
     let carouselState = 'normal';
     let autoSlideInterval;
     let isExiting = false; // Flag pour éviter les re-entrées
