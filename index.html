@@ -103,6 +103,64 @@
             z-index: 2;
         }
 
+        .profile-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.profile-info {
+    text-align: center;
+    margin-bottom: 15%;
+}
+
+.profile-name {
+    font-size: 2.8em;
+    font-weight: bold;
+    margin: 0;
+    margin-bottom: 8px;
+    background: linear-gradient(45deg, #00d4ff, #ca79c6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.profile-email {
+    font-size: 0.9em;
+    color: #b0b0b0;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    display: inline-block;
+}
+
+.profile-email:hover {
+    color: #00d4ff;
+    text-decoration: underline;
+}
+
+/* Responsive pour mobile */
+@media (max-width: 600px) {
+    .profile-name {
+        font-size: 2em;
+        letter-spacing: 1px;
+    }
+
+    .profile-email {
+        font-size: 0.8em;
+    }
+
+    .profile-info {
+        margin-bottom: 5px;
+    }
+
+    .profile-wrapper {
+        gap: 15px;
+    }
+}
+
         /* Canvas pour le rayon laser */
         .laser-canvas {
             position: absolute;
@@ -267,7 +325,7 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            overflow: hidden;
+            overflow: hidden; /* Important pour contenir l'animation */
         }
 
         .section3d-title {
@@ -314,6 +372,7 @@
             opacity: 1;
         }
 
+        /* Variables CSS pour ajustement facile de la taille */
         :root {
             --bee-scale: 0.2;
             --bee-speed: 0.05;
@@ -331,6 +390,67 @@
                 font-size: 3em;
             }
         }
+
+        @media (max-width: 768px) {
+    .carousel-slide {
+        min-width: 100%; /* Mobile: 1 vidéo en plein écran */
+        padding: 5px;
+    }
+
+    .carousel-video {
+        width: 95%;
+        height: 70%;
+    }
+
+    .blue-line {
+        font-size: 16px;
+        padding: 8px;
+    }
+
+    /* Section 4 - Cards responsive */
+    .section4-container {
+        flex-direction: column;
+        width: 90%;
+        gap: 2rem;
+        height: auto;
+    }
+
+    .card {
+        width: 100%;
+        max-width: 280px;
+        aspect-ratio: 4/5;
+    }
+
+    .creepy-btn {
+        width: 80%;
+        max-width: 250px;
+        bottom: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .carousel-video {
+        width: 98%;
+        height: 65%;
+    }
+
+    .blue-line {
+        font-size: 14px;
+        padding: 6px;
+    }
+
+    .section4-container {
+        gap: 1.5rem;
+    }
+
+    .card {
+        max-width: 240px;
+    }
+
+    .text {
+        font-size: 20px;
+    }
+}
 
      /* Ligne électrique entre sections */
 .electric-divider-section {
@@ -463,6 +583,8 @@
   isolation: isolate;
   transition: border-color 200ms var(--ease-out);
   user-select: none;
+  flex: 1; /* AJOUTEZ CETTE LIGNE */
+  max-width: 300px;
 
   &::before {
         content: "";
@@ -662,6 +784,7 @@
           color: #757575;
         }
     </style>
+
 </head>
 <body>
     <svg class="svg-container" style="position: absolute; width: 0; height: 0;">
@@ -704,10 +827,17 @@
                     <p>Passionné par la création de jeux web interactifs et d’animations fluides, avec une attention particulière portée aux performances, à l’optimisation et à l’expérience utilisateur.</p>
                 </div>
         
-                <div class="image-container" id="imageContainer">
-                    <img src="Content/Images/profil.JPG" 
-                         alt="Profile" class="profile-image" id="profileImage"/>
-                    <canvas class="laser-canvas" id="laserCanvas"></canvas>
+                <div class="profile-wrapper">
+                    <div class="profile-info">
+                        <h1 class="profile-name">Clément BELLOU</h1>
+                        <a href="mailto:clement.bellou@yahoo.com" class="profile-email">clement.bellou@yahoo.com</a>
+                    </div>
+    
+                    <div class="image-container" id="imageContainer">
+                        <img src="Content/Images/profil.jpg" 
+                             alt="Profile" class="profile-image" id="profileImage"/>
+                        <canvas class="laser-canvas" id="laserCanvas"></canvas>
+                    </div>
                 </div>
         
                 <div class="hero-text-right">
@@ -716,6 +846,7 @@
                 </div>
             </div>
         </section>
+
 
         <!-- Section 2: Carrousel vidéo -->
         <section class="carousel-section" id="carouselSection">
@@ -848,10 +979,7 @@
         </section>
 
     <script>
-        // [TOUT TON JAVASCRIPT ICI - je l'ai laissé intact]
-        // Animation des étincelles, carrousel, rayon laser, scène 3D, etc.
-        // ... (copie tout le JavaScript de ton fichier original)
-	    // Animation des étincelles et chute d'image
+    // Animation des étincelles et chute d'image
     function createSpark(x, y) {
         const spark = document.createElement('div');
         spark.className = 'spark';
@@ -904,270 +1032,298 @@
     setTimeout(startSparkAnimation, 2000);
 
     // Gestion du carrousel
-    // Remplacer tout le JavaScript à partir de la ligne "// Gestion du carrousel"
+        // Gestion du carrousel - VERSION AVEC PROTECTION TRACKPAD
+        let currentSlide = 0;
+        const totalSlides = 11;
+        let carouselState = 'normal';
+        let autoSlideInterval;
+        let isExiting = false;
+        let exitCooldown = false;
+        let isScrolling = false; // NOUVEAU : Flag pour éviter le scroll trop rapide
 
-    let currentSlide = 0;
-    const totalSlides = 11;
-    let carouselState = 'normal';
-    let autoSlideInterval;
-    let isExiting = false; // Flag pour éviter les re-entrées
-    let exitCooldown = false; // Cooldown après sortie
+        const carouselSection = document.getElementById('carouselSection');
+        const body = document.body;
 
-    // Éléments DOM
-    const carouselSection = document.getElementById('carouselSection');
-    const body = document.body;
-
-    function updateCarousel() {
-        const container = document.getElementById('carouselContainer');
-        const slideWidth = window.innerWidth * 0.5;
-        container.style.transform = `translateX(-${currentSlide * slideWidth}px)`;
-    }
-
-    function nextSlide() {
-        if (currentSlide < totalSlides - 2) {
-            currentSlide++;
-            updateCarousel();
+        // Fonction pour détecter si on est sur mobile
+        function isMobile() {
+            return window.innerWidth <= 768;
         }
-    }
 
-    function prevSlide() {
-        if (currentSlide > 0) {
-            currentSlide--;
-            updateCarousel();
+        // Fonction pour obtenir le nombre de slides visibles
+        function getSlidesPerView() {
+            return isMobile() ? 1 : 2;
         }
-    }
 
-    function startAutoSlide() {
-        if (autoSlideInterval) clearInterval(autoSlideInterval);
-        autoSlideInterval = setInterval(() => {
-            if (carouselState === 'normal' && !isExiting && !exitCooldown) {
-                nextSlide();
-            }
-        }, 3000);
-    }
-
-    function stopAutoSlide() {
-        if (autoSlideInterval) {
-            clearInterval(autoSlideInterval);
-            autoSlideInterval = null;
+        function updateCarousel() {
+            const container = document.getElementById('carouselContainer');
+            const slidesPerView = getSlidesPerView();
+            const slideWidth = window.innerWidth / slidesPerView;
+            container.style.transform = `translateX(-${currentSlide * slideWidth}px)`;
         }
-    }
 
-    // Transition vers le mode plein écran
-    function enterFullscreenMode() {
-        if (carouselState !== 'normal' || isExiting || exitCooldown) return;
+        function nextSlide() {
+            const slidesPerView = getSlidesPerView();
+            const maxSlide = totalSlides - slidesPerView;
 
-        carouselState = 'transitioning-in';
-        stopAutoSlide();
-        body.style.overflow = 'hidden';
-
-        carouselSection.classList.add('fullscreen-mode');
-
-        setTimeout(() => {
-            if (!isExiting) { // Vérifier qu'on n'est pas en train de sortir
-                carouselState = 'carousel-mode';
-                window.addEventListener('wheel', handleCarouselScroll, { passive: false });
-            }
-        }, 500);
-    }
-
-    // Sortie DÉFINITIVE du mode plein écran
-    function exitFullscreenMode(direction) {
-        if (carouselState !== 'carousel-mode' || isExiting) return;
-
-        // Marquer qu'on est en train de sortir
-        isExiting = true;
-        carouselState = 'transitioning-out';
-
-        // Désactiver immédiatement le contrôle du carrousel
-        window.removeEventListener('wheel', handleCarouselScroll);
-
-        // Retirer la classe fullscreen
-        carouselSection.classList.remove('fullscreen-mode');
-
-        // Restaurer le scroll normal immédiatement
-        body.style.overflow = 'auto';
-
-        if (direction === 'up') {
-            // Sortie vers le haut - téléporter vers la fin de la section 1
-            setTimeout(() => {
-                const heroSection = document.querySelector('.hero-section');
-                const targetScroll = heroSection.offsetTop + heroSection.offsetHeight - 50;
-
-                window.scrollTo({
-                    top: targetScroll,
-                    behavior: 'auto'
-                });
-
-                finalizateExit();
-            }, 500);
-
-        } else if (direction === 'down') {
-            // Sortie vers le bas - RESTER À LA POSITION ACTUELLE du carrousel
-            setTimeout(() => {
-                // Calculer la position actuelle du carrousel dans le document
-                const carouselTop = carouselSection.offsetTop;
-
-                // Rester à la position du carrousel (pas de téléportation)
-                window.scrollTo({
-                    top: carouselTop,
-                    behavior: 'auto'
-                });
-
-                finalizateExit();
-            }, 500);
-        }
-    }
-
-    function finalizateExit() {
-        // Activer le cooldown pour empêcher la re-entrée
-        exitCooldown = true;
-
-        setTimeout(() => {
-            isExiting = false;
-            carouselState = 'normal';
-
-            // Cooldown pour éviter la re-détection
-            setTimeout(() => {
-                exitCooldown = false;
-                startAutoSlide();
-            }, 1000);
-
-        }, 100);
-    }
-
-    // Gestion du scroll dans le carrousel - SIMPLIFIÉE
-    function handleCarouselScroll(event) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (isExiting || carouselState !== 'carousel-mode') return false;
-
-        const delta = event.deltaY;
-
-        if (delta > 0) {
-            // Scroll vers le bas
-            if (currentSlide < totalSlides - 2) {
+            if (currentSlide < maxSlide) {
                 currentSlide++;
                 updateCarousel();
-            } else {
-                // FIN du carrousel - sortie immédiate
-                exitFullscreenMode('down');
             }
-        } else {
-            // Scroll vers le haut
+        }
+
+        function prevSlide() {
             if (currentSlide > 0) {
                 currentSlide--;
                 updateCarousel();
-            } else {
-                // DÉBUT du carrousel - sortie immédiate
-                exitFullscreenMode('up');
             }
         }
 
-        return false;
-    }
+        function startAutoSlide() {
+            if (autoSlideInterval) clearInterval(autoSlideInterval);
+            autoSlideInterval = setInterval(() => {
+                if (carouselState === 'normal' && !isExiting && !exitCooldown) {
+                    nextSlide();
+                }
+            }, 3000);
+        }
 
-    // Détection de position - avec protection
-    function checkCarouselPosition() {
-        // Ne pas détecter si on est en sortie ou en cooldown
-        if (carouselState !== 'normal' || isExiting || exitCooldown) return;
-
-        const rect = carouselSection.getBoundingClientRect();
-        const windowHeight = window.innerHeight;
-
-        const currentScrollY = window.scrollY;
-        const scrollDirection = currentScrollY > (window.lastScrollY || 0) ? 'down' : 'up';
-        window.lastScrollY = currentScrollY;
-
-        // Conditions PLUS strictes pour éviter les re-entrées
-        if (scrollDirection === 'down') {
-            // On descend - le haut du carrousel doit être pile en haut
-            if (rect.top <= 10 && rect.top >= -10 && rect.bottom > windowHeight * 0.8) {
-                enterFullscreenMode();
-            }
-        } else if (scrollDirection === 'up') {
-            // On remonte - le bas du carrousel doit être pile en bas
-            if (rect.bottom >= windowHeight - 10 && rect.bottom <= windowHeight + 10 && rect.top < windowHeight * 0.2) {
-                enterFullscreenMode();
+        function stopAutoSlide() {
+            if (autoSlideInterval) {
+                clearInterval(autoSlideInterval);
+                autoSlideInterval = null;
             }
         }
-    }
 
-    // Écouteur de scroll - PROTÉGÉ
-    function handleMainScroll() {
-        // Ignorer complètement le scroll si on est en mode carrousel ou en transition
-        if (carouselState === 'carousel-mode' || isExiting || exitCooldown) {
-            return;
+        function enterFullscreenMode() {
+            if (carouselState !== 'normal' || isExiting || exitCooldown) return;
+
+            carouselState = 'transitioning-in';
+            stopAutoSlide();
+            body.style.overflow = 'hidden';
+
+            carouselSection.classList.add('fullscreen-mode');
+
+            setTimeout(() => {
+                if (!isExiting) {
+                    carouselState = 'carousel-mode';
+                    window.addEventListener('wheel', handleCarouselScroll, { passive: false });
+                }
+            }, 500);
         }
 
-        if (carouselState === 'normal') {
-            checkCarouselPosition();
+        function exitFullscreenMode(direction) {
+            if (carouselState !== 'carousel-mode' || isExiting) return;
+
+            isExiting = true;
+            carouselState = 'transitioning-out';
+
+            window.removeEventListener('wheel', handleCarouselScroll);
+            carouselSection.classList.remove('fullscreen-mode');
+            body.style.overflow = 'auto';
+
+            if (direction === 'up') {
+                setTimeout(() => {
+                    const heroSection = document.querySelector('.hero-section');
+                    const targetScroll = heroSection.offsetTop + heroSection.offsetHeight - 50;
+
+                    window.scrollTo({
+                        top: targetScroll,
+                        behavior: 'auto'
+                    });
+
+                    finalizateExit();
+                }, 500);
+
+            } else if (direction === 'down') {
+                setTimeout(() => {
+                    const carouselTop = carouselSection.offsetTop;
+
+                    window.scrollTo({
+                        top: carouselTop,
+                        behavior: 'auto'
+                    });
+
+                    finalizateExit();
+                }, 500);
+            }
         }
-    }
 
-    // Gestion tactile simplifiée
-    let touchStartX = 0;
-    let touchStartY = 0;
+        function finalizateExit() {
+            exitCooldown = true;
 
-    carouselSection.addEventListener('touchstart', (e) => {
-        if (carouselState === 'carousel-mode' && !isExiting) {
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
+            setTimeout(() => {
+                isExiting = false;
+                carouselState = 'normal';
+
+                setTimeout(() => {
+                    exitCooldown = false;
+                    startAutoSlide();
+                }, 1000);
+
+            }, 100);
         }
-    });
 
-    carouselSection.addEventListener('touchmove', (e) => {
-        if (carouselState === 'carousel-mode' && !isExiting) {
-            e.preventDefault();
-        }
-    });
+        // NOUVELLE VERSION : Gestion du scroll avec protection trackpad
+        function handleCarouselScroll(event) {
+            event.preventDefault();
+            event.stopPropagation();
 
-    carouselSection.addEventListener('touchend', (e) => {
-        if (carouselState === 'carousel-mode' && !isExiting) {
-            const touchEndX = e.changedTouches[0].screenX;
-            const touchEndY = e.changedTouches[0].screenY;
+            if (isExiting || carouselState !== 'carousel-mode') return false;
 
-            const deltaX = touchStartX - touchEndX;
-            const deltaY = touchStartY - touchEndY;
+            // Si on est déjà en train de scroller, ignorer l'événement
+            if (isScrolling) return false;
 
-            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-                // Swipe horizontal
-                if (deltaX > 0 && currentSlide < totalSlides - 2) {
+            const delta = event.deltaY;
+            const slidesPerView = getSlidesPerView();
+            const maxSlide = totalSlides - slidesPerView;
+
+            // Détecter si c'est un trackpad (valeurs plus petites) ou une souris (valeurs plus grandes)
+            const isTrackpad = Math.abs(delta) < 50;
+
+            // Seuil minimum pour déclencher un changement de slide
+            const threshold = isTrackpad ? 30 : 10;
+
+            if (Math.abs(delta) < threshold) {
+                return false;
+            }
+
+            // Bloquer les nouveaux scrolls pendant un certain temps
+            isScrolling = true;
+
+            // Délai adapté au type d'input (plus long pour trackpad)
+            const scrollDelay = isTrackpad ? 600 : 300;
+
+            if (delta > 0) {
+                // Scroll vers le bas
+                if (currentSlide < maxSlide) {
                     currentSlide++;
                     updateCarousel();
-                } else if (deltaX < 0 && currentSlide > 0) {
+                } else {
+                    // FIN du carrousel - sortie immédiate
+                    exitFullscreenMode('down');
+                    isScrolling = false; // Reset immédiat pour la sortie
+                    return false;
+                }
+            } else {
+                // Scroll vers le haut
+                if (currentSlide > 0) {
                     currentSlide--;
                     updateCarousel();
-                } else if (deltaX > 0 && currentSlide >= totalSlides - 2) {
-                    exitFullscreenMode('down');
-                } else if (deltaX < 0 && currentSlide <= 0) {
+                } else {
+                    // DÉBUT du carrousel - sortie immédiate
                     exitFullscreenMode('up');
+                    isScrolling = false; // Reset immédiat pour la sortie
+                    return false;
                 }
-            } else if (Math.abs(deltaY) > 50) {
-                // Swipe vertical
-                if (deltaY > 0 && currentSlide <= 0) {
-                    exitFullscreenMode('up');
-                } else if (deltaY < 0 && currentSlide >= totalSlides - 2) {
-                    exitFullscreenMode('down');
+            }
+
+            // Débloquer après le délai
+            setTimeout(() => {
+                isScrolling = false;
+            }, scrollDelay);
+
+            return false;
+        }
+
+        // Détection de position - avec protection
+        function checkCarouselPosition() {
+            if (carouselState !== 'normal' || isExiting || exitCooldown) return;
+
+            const rect = carouselSection.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+
+            const currentScrollY = window.scrollY;
+            const scrollDirection = currentScrollY > (window.lastScrollY || 0) ? 'down' : 'up';
+            window.lastScrollY = currentScrollY;
+
+            if (scrollDirection === 'down') {
+                if (rect.top <= 10 && rect.top >= -10 && rect.bottom > windowHeight * 0.8) {
+                    enterFullscreenMode();
+                }
+            } else if (scrollDirection === 'up') {
+                if (rect.bottom >= windowHeight - 10 && rect.bottom <= windowHeight + 10 && rect.top < windowHeight * 0.2) {
+                    enterFullscreenMode();
                 }
             }
         }
-    });
 
-    // Initialisation
-    window.addEventListener('scroll', handleMainScroll, { passive: true });
-    window.addEventListener('resize', updateCarousel);
+        // Écouteur de scroll - PROTÉGÉ
+        function handleMainScroll() {
+            if (carouselState === 'carousel-mode' || isExiting || exitCooldown) {
+                return;
+            }
 
-    // Reset au chargement
-    isExiting = false;
-    exitCooldown = false;
-    carouselState = 'normal';
+            if (carouselState === 'normal') {
+                checkCarouselPosition();
+            }
+        }
 
-    // Démarrer l'auto-slide
-    startAutoSlide();
+        // Gestion tactile
+        let touchStartX = 0;
+        let touchStartY = 0;
 
-    console.log('Système de carrousel sans accoups initialisé !');
+        carouselSection.addEventListener('touchstart', (e) => {
+            if (carouselState === 'carousel-mode' && !isExiting) {
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+            }
+        });
+
+        carouselSection.addEventListener('touchmove', (e) => {
+            if (carouselState === 'carousel-mode' && !isExiting) {
+                e.preventDefault();
+            }
+        });
+
+        carouselSection.addEventListener('touchend', (e) => {
+            if (carouselState === 'carousel-mode' && !isExiting) {
+                const touchEndX = e.changedTouches[0].screenX;
+                const touchEndY = e.changedTouches[0].screenY;
+
+                const deltaX = touchStartX - touchEndX;
+                const deltaY = touchStartY - touchEndY;
+
+                const slidesPerView = getSlidesPerView();
+                const maxSlide = totalSlides - slidesPerView;
+
+                if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+                    // Swipe horizontal
+                    if (deltaX > 0 && currentSlide < maxSlide) {
+                        currentSlide++;
+                        updateCarousel();
+                    } else if (deltaX < 0 && currentSlide > 0) {
+                        currentSlide--;
+                        updateCarousel();
+                    } else if (deltaX > 0 && currentSlide >= maxSlide) {
+                        exitFullscreenMode('down');
+                    } else if (deltaX < 0 && currentSlide <= 0) {
+                        exitFullscreenMode('up');
+                    }
+                } else if (Math.abs(deltaY) > 50) {
+                    // Swipe vertical
+                    if (deltaY > 0 && currentSlide <= 0) {
+                        exitFullscreenMode('up');
+                    } else if (deltaY < 0 && currentSlide >= maxSlide) {
+                        exitFullscreenMode('down');
+                    }
+                }
+            }
+        });
+
+        // Initialisation
+        window.addEventListener('scroll', handleMainScroll, { passive: true });
+        window.addEventListener('resize', updateCarousel);
+
+        // Reset au chargement
+        isExiting = false;
+        exitCooldown = false;
+        carouselState = 'normal';
+        isScrolling = false; // NOUVEAU
+
+        // Démarrer l'auto-slide
+        startAutoSlide();
+
+        console.log('Système de carrousel avec protection trackpad initialisé !');
 
 
 
@@ -2043,9 +2199,9 @@
 
 
     const phrases = [
-        '↙️ Télécharger mon CV',
-        'Jouer sur mon CV ⤵️',
-        'et recruter moi',
+        '↙️ Téléchargez mon CV',
+        'Jouez sur mon CV ⤵️',
+        'et recrutez moi',
         'SVP'
     ]
 
